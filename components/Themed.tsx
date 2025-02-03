@@ -3,7 +3,7 @@
  * https://docs.expo.io/guides/color-schemes/
  */
 
-import { Text as DefaultText, View as DefaultView } from 'react-native';
+import { Text as DefaultText, View as DefaultView, Pressable as DefaultPressable, StyleProp, ViewStyle } from 'react-native';
 
 import Colors from '@/constants/Colors';
 import { useColorScheme } from './useColorScheme';
@@ -15,6 +15,7 @@ type ThemeProps = {
 
 export type TextProps = ThemeProps & DefaultText['props'];
 export type ViewProps = ThemeProps & DefaultView['props'];
+export type PressableProps = ThemeProps & React.ComponentProps<typeof DefaultPressable>;
 
 export function useThemeColor(
   props: { light?: string; dark?: string },
@@ -42,4 +43,36 @@ export function View(props: ViewProps) {
   const backgroundColor = useThemeColor({ light: lightColor, dark: darkColor }, 'background');
 
   return <DefaultView style={[{ backgroundColor }, style]} {...otherProps} />;
+}
+
+export function Pressable(props: PressableProps) {
+  const { style, lightColor, darkColor, ...otherProps } = props;
+  const backgroundColor = useThemeColor({ light: lightColor, dark: darkColor }, 'background');
+
+  return (
+    <DefaultPressable
+      {...otherProps}
+      style={(state) => {
+        const baseStyle = { backgroundColor };
+        if (typeof style === 'function') {
+          return [baseStyle, style(state)];
+        }
+        return [baseStyle, style];
+      }}
+    />
+  );
+}
+
+export function AccentView(props: ViewProps) {
+  const { style, ...otherProps } = props;
+  const backgroundColor = useThemeColor({}, 'accent');
+
+  return <DefaultView style={[{ backgroundColor }, style]} {...otherProps} />;
+}
+
+export function AccentText(props: TextProps) {
+  const { style, ...otherProps } = props;
+  const color = useThemeColor({}, 'accent');
+
+  return <DefaultText style={[{ color }, style]} {...otherProps} />;
 }
