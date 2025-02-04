@@ -3,8 +3,7 @@ import { StyleSheet, View, Dimensions, TextInput, TouchableOpacity, Text } from 
 import YoutubeIframe from 'react-native-youtube-iframe';
 import { YOUTUBE_API_KEY } from '../../../config/youtube.config';
 
-const { width } = Dimensions.get('window');
-const videoHeight = (width * 9) / 16; // 16:9 aspect ratio
+const { width: SCREEN_WIDTH, height: SCREEN_HEIGHT } = Dimensions.get('window');
 const DESIRED_QUEUE_SIZE = 10;
 
 interface YouTubeVideo {
@@ -37,17 +36,57 @@ const isLikelyShort = (video: YouTubeVideo): boolean => {
   const thumbnail = video.snippet.thumbnails.high || video.snippet.thumbnails.default;
   const isVertical = thumbnail.height > thumbnail.width;
 
+  console.log('isVertical', isVertical);
+  console.log('hasShortTag', hasShortTag);
+
   // If it has the shorts tag or is vertical, it's likely a short
   return hasShortTag || isVertical;
+};
+
+const calculateDimensions = (video: YouTubeVideo) => {
+  const thumbnail = video.snippet.thumbnails.high || video.snippet.thumbnails.default;
+  const aspectRatio = thumbnail.width / thumbnail.height;
+  
+  // Always use full width and calculate height based on aspect ratio
+  const width = SCREEN_WIDTH;
+  const height = width / aspectRatio;
+  
+  return {
+    width,
+    height
+  };
+};
+
+const getVideoUrl = async (videoId: string) => {
+  try {
+    const response = await fetch(
+      `https://www.googleapis.com/youtube/v3/videos?part=player&id=${videoId}&key=${YOUTUBE_API_KEY}`
+    );
+    const data = await response.json();
+    if (data.items && data.items[0]) {
+      // Extract direct video URL from player data
+      // Note: This might need adjustment based on YouTube API response
+      return `https://www.youtube.com/embed/${videoId}`;
+    }
+    return null;
+  } catch (error) {
+    console.error('Error getting video URL:', error);
+    return null;
+  }
 };
 
 export function YouTubeViewer() {
   const [searchQuery, setSearchQuery] = useState('');
   const [videoId, setVideoId] = useState('');
+  const [videoUrl, setVideoUrl] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
   const [videoQueue, setVideoQueue] = useState<YouTubeVideo[]>([]);
   const [nextPageToken, setNextPageToken] = useState<string | undefined>();
   const [currentSearch, setCurrentSearch] = useState('');
+  const [currentDimensions, setCurrentDimensions] = useState({ 
+    width: SCREEN_WIDTH,
+    height: SCREEN_HEIGHT
+  });
 
   const fetchMoreVideos = useCallback(async (pageToken?: string) => {
     if (!currentSearch || loading) return;
@@ -109,6 +148,23 @@ export function YouTubeViewer() {
     }
   }, [videoQueue, videoId]);
 
+  // Update dimensions when video changes
+  useEffect(() => {
+    if (videoQueue.length > 0) {
+      const dimensions = calculateDimensions(videoQueue[0]);
+      setCurrentDimensions(dimensions);
+    }
+  }, [videoQueue]);
+
+  // Update video URL when videoId changes
+  useEffect(() => {
+    if (videoId) {
+      getVideoUrl(videoId).then(url => {
+        if (url) setVideoUrl(url);
+      });
+    }
+  }, [videoId]);
+
   const handleNext = useCallback(() => {
     if (videoQueue.length === 0) return;
     
@@ -121,42 +177,49 @@ export function YouTubeViewer() {
 
   return (
     <View style={styles.container}>
-      <View style={styles.searchContainer}>
-        <TextInput
-          style={styles.searchInput}
-          value={searchQuery}
-          onChangeText={setSearchQuery}
-          placeholder="Search YouTube videos..."
-          placeholderTextColor="#999"
-        />
+      <View style={styles.videoContainer}>
+        <View style={{
+          position: 'absolute',
+          left: -(SCREEN_WIDTH),
+        }}>
+          <YoutubeIframe
+            height={SCREEN_HEIGHT}
+            width={SCREEN_WIDTH * 3}
+            videoId={videoId}
+            play={true}
+            webViewProps={{
+              androidLayerType: 'hardware',
+            }}
+          />
+        </View>
+      </View>
+      <View style={styles.overlay}>
+        <View style={styles.searchContainer}>
+          <TextInput
+            style={styles.searchInput}
+            value={searchQuery}
+            onChangeText={setSearchQuery}
+            placeholder="Search YouTube videos..."
+            placeholderTextColor="#999"
+          />
+          <TouchableOpacity 
+            style={styles.searchButton} 
+            onPress={searchYouTube}
+            disabled={loading}
+          >
+            <Text style={styles.searchButtonText}>
+              {loading ? 'Searching...' : 'Search'}
+            </Text>
+          </TouchableOpacity>
+        </View>
         <TouchableOpacity 
-          style={styles.searchButton} 
-          onPress={searchYouTube}
-          disabled={loading}
+          style={[styles.nextButton, { opacity: videoQueue.length > 0 ? 1 : 0.5 }]} 
+          onPress={handleNext}
+          disabled={videoQueue.length === 0}
         >
-          <Text style={styles.searchButtonText}>
-            {loading ? 'Searching...' : 'Search'}
-          </Text>
+          <Text style={styles.nextButtonText}>Next Video</Text>
         </TouchableOpacity>
       </View>
-      <View style={styles.videoContainer}>
-        <YoutubeIframe
-          height={videoHeight}
-          width={width - 40}
-          videoId={videoId}
-          play={true}
-          webViewProps={{
-            androidLayerType: 'hardware',
-          }}
-        />
-      </View>
-      <TouchableOpacity 
-        style={[styles.nextButton, { opacity: videoQueue.length > 0 ? 1 : 0.5 }]} 
-        onPress={handleNext}
-        disabled={videoQueue.length === 0}
-      >
-        <Text style={styles.nextButtonText}>Next Video</Text>
-      </TouchableOpacity>
     </View>
   );
 }
@@ -164,13 +227,31 @@ export function YouTubeViewer() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    padding: 20,
     backgroundColor: '#333333',
+    width: SCREEN_WIDTH,
+    height: SCREEN_HEIGHT,
+  },
+  videoContainer: {
+    flex: 1,
+    backgroundColor: '#333333',
+    marginTop: 60,
+    alignItems: 'center',
+    overflow: 'hidden',
+    position: 'relative'
+  },
+  overlay: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
+    backgroundColor: 'transparent',
   },
   searchContainer: {
     flexDirection: 'row',
-    marginBottom: 20,
+    padding: 10,
     gap: 10,
+    backgroundColor: 'rgba(51, 51, 51, 0.5)',
   },
   searchInput: {
     flex: 1,
@@ -190,17 +271,15 @@ const styles = StyleSheet.create({
     color: '#ffffff',
     fontWeight: 'bold',
   },
-  videoContainer: {
-    alignItems: 'center',
-    backgroundColor: '#333333',
-    marginBottom: 20,
-  },
   nextButton: {
+    position: 'absolute',
+    bottom: 20,
+    left: 10,
+    right: 10,
     backgroundColor: '#FF0000',
     padding: 15,
     borderRadius: 8,
     alignItems: 'center',
-    marginTop: 10,
   },
   nextButtonText: {
     color: '#ffffff',
