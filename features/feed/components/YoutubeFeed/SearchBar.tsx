@@ -14,10 +14,10 @@ interface SearchBarProps {
 
 export function SearchBar({ searchQuery, setSearchQuery, onSearch, loading }: SearchBarProps) {
   const [isSearchVisible, setIsSearchVisible] = useState(false);
-  const slideAnim = useState(new Animated.Value(-SCREEN_WIDTH))[0];
+  const slideAnim = useState(new Animated.Value(SCREEN_WIDTH))[0];
 
   const toggleSearch = () => {
-    const toValue = isSearchVisible ? -SCREEN_WIDTH : 0;
+    const toValue = isSearchVisible ? SCREEN_WIDTH : 0;
     
     Animated.spring(slideAnim, {
       toValue,
@@ -27,6 +27,13 @@ export function SearchBar({ searchQuery, setSearchQuery, onSearch, loading }: Se
     }).start();
     
     setIsSearchVisible(!isSearchVisible);
+  };
+
+  const handleSearch = () => {
+    onSearch();
+    if (!loading) {
+      toggleSearch();
+    }
   };
 
   useEffect(() => {
@@ -59,11 +66,11 @@ export function SearchBar({ searchQuery, setSearchQuery, onSearch, loading }: Se
             onChangeText={setSearchQuery}
             placeholder="Search YouTube videos..."
             placeholderTextColor="#999"
-            onSubmitEditing={onSearch}
+            onSubmitEditing={handleSearch}
           />
           <TouchableOpacity 
             style={styles.searchButton} 
-            onPress={onSearch}
+            onPress={handleSearch}
             disabled={loading}
           >
             <Text style={styles.searchButtonText}>

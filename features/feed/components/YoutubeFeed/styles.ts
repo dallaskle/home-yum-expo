@@ -32,12 +32,13 @@ export const styles = StyleSheet.create({
   },
   searchWrapper: {
     position: 'absolute',
-    top: 0,
+    top: 40,
     left: 0,
     right: 0,
     zIndex: 2,
     flexDirection: 'row',
     alignItems: 'center',
+    justifyContent: 'flex-end',
   },
   searchIconButton: {
     width: 50,
@@ -51,14 +52,14 @@ export const styles = StyleSheet.create({
   },
   searchAnimatedContainer: {
     position: 'absolute',
-    top: 0,
-    left: 0,
-    right: 0,
+    right: 60,
+    width: SCREEN_WIDTH * 0.80,
     zIndex: 2,
   },
   searchContainer: {
     flexDirection: 'row',
     padding: 10,
+    paddingLeft: 0,
     gap: 10,
     backgroundColor: 'rgba(51, 51, 51, 0.9)',
   },
@@ -69,6 +70,7 @@ export const styles = StyleSheet.create({
     borderRadius: 8,
     paddingHorizontal: 10,
     color: '#000000',
+    marginLeft: 0,
   },
   searchButton: {
     backgroundColor: '#FF0000',
