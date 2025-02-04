@@ -1,10 +1,11 @@
-import React, { useEffect, useRef } from 'react';
-import { StyleSheet, View, Text, Dimensions } from 'react-native';
+import React, { useEffect, useRef, useState } from 'react';
+import { StyleSheet, View, Text, Dimensions, TouchableOpacity } from 'react-native';
 import { ResizeMode, Video as ExpoVideo, AVPlaybackStatus } from 'expo-av';
 import { Video as VideoType } from '@/types/database.types';
 import Colors from '@/constants/Colors';
 import { useColorScheme } from '@/components/useColorScheme';
 import { BlurView } from 'expo-blur';
+import Animated, { useAnimatedStyle, withTiming } from 'react-native-reanimated';
 
 const { width: SCREEN_WIDTH, height: SCREEN_HEIGHT } = Dimensions.get('window');
 
@@ -17,6 +18,9 @@ interface VideoPlayerProps {
 export function VideoPlayer({ video, isActive, onEnd }: VideoPlayerProps) {
   const videoRef = useRef<ExpoVideo>(null);
   const colorScheme = useColorScheme();
+  const [duration, setDuration] = useState(0);
+  const [position, setPosition] = useState(0);
+  const [showControls, setShowControls] = useState(false);
 
   useEffect(() => {
     if (!videoRef.current) return;
@@ -31,6 +35,11 @@ export function VideoPlayer({ video, isActive, onEnd }: VideoPlayerProps) {
   const handlePlaybackStatusUpdate = (status: AVPlaybackStatus) => {
     if (!status.isLoaded) return;
     
+    if (status.durationMillis) {
+      setDuration(status.durationMillis);
+    }
+    setPosition(status.positionMillis);
+    
     if (status.didJustFinish) {
       // Reset video position and replay
       videoRef.current?.setPositionAsync(0);
@@ -39,20 +48,67 @@ export function VideoPlayer({ video, isActive, onEnd }: VideoPlayerProps) {
     }
   };
 
+  const formatTime = (millis: number) => {
+    const totalSeconds = Math.floor(millis / 1000);
+    const minutes = Math.floor(totalSeconds / 60);
+    const seconds = totalSeconds % 60;
+    return `${minutes}:${seconds.toString().padStart(2, '0')}`;
+  };
+
+  const handleSeek = async (locationX: number) => {
+    if (!videoRef.current || !duration) return;
+    
+    const seekPosition = (locationX / SCREEN_WIDTH) * duration;
+    await videoRef.current.setPositionAsync(seekPosition);
+  };
+
   return (
     <View style={styles.container}>
-      <ExpoVideo
-        ref={videoRef}
-        source={{ uri: video.videoUrl }}
-        style={styles.video}
-        resizeMode={ResizeMode.CONTAIN}
-        shouldPlay={isActive}
-        isLooping={false}
-        onPlaybackStatusUpdate={handlePlaybackStatusUpdate}
-      />
+      <View style={styles.videoContainer}>
+        <TouchableOpacity
+          style={styles.videoWrapper}
+          onPress={() => setShowControls(!showControls)}
+          activeOpacity={1}
+        >
+          <ExpoVideo
+            ref={videoRef}
+            source={{ uri: video.videoUrl }}
+            style={styles.video}
+            resizeMode={ResizeMode.CONTAIN}
+            shouldPlay={isActive}
+            isLooping={false}
+            onPlaybackStatusUpdate={handlePlaybackStatusUpdate}
+          />
+        </TouchableOpacity>
+        
+        {/* Progress Bar */}
+        <View style={styles.progressContainer}>
+          <View style={styles.progressBar}>
+            <View 
+              style={[
+                styles.progress, 
+                { width: `${(position / duration) * 100}%` }
+              ]} 
+            />
+          </View>
+          <TouchableOpacity
+            style={styles.progressTouchable}
+            onPress={(e) => {
+              const { locationX } = e.nativeEvent;
+              handleSeek(locationX);
+            }}
+          >
+            <View style={styles.progressOverlay} />
+          </TouchableOpacity>
+          <View style={styles.timeContainer}>
+            <Text style={styles.timeText}>{formatTime(position)}</Text>
+            <Text style={styles.timeText}>{formatTime(duration)}</Text>
+          </View>
+        </View>
+      </View>
       
       {/* Video Info Overlay */}
-      <BlurView intensity={30} tint={colorScheme === 'dark' ? 'dark' : 'light'} style={styles.overlay}>
+      <View style={styles.overlay}>
         <View style={styles.textContainer}>
           <Text style={[styles.title, { color: '#FFFFFF' }]}>
             {video.videoTitle}
@@ -64,7 +120,7 @@ export function VideoPlayer({ video, isActive, onEnd }: VideoPlayerProps) {
             {video.mealDescription}
           </Text>
         </View>
-      </BlurView>
+      </View>
     </View>
   );
 }
@@ -76,33 +132,80 @@ const styles = StyleSheet.create({
     width: SCREEN_WIDTH,
     height: SCREEN_HEIGHT,
   },
+  videoContainer: {
+    flex: 1,
+  },
+  videoWrapper: {
+    flex: 1,
+  },
   video: {
     flex: 1,
     width: SCREEN_WIDTH,
-    height: SCREEN_HEIGHT,
+    height: '100%',
+  },
+  progressContainer: {
+    position: 'absolute',
+    bottom: 60,
+    left: 0,
+    right: 0,
+    paddingHorizontal: 20,
+    backgroundColor: 'rgba(51, 51, 51, 0.5)',
+    paddingTop: 10,
+    paddingBottom: 5,
+  },
+  progressBar: {
+    height: 4,
+    backgroundColor: 'rgba(255, 255, 255, 0.3)',
+    borderRadius: 2,
+    overflow: 'hidden',
+  },
+  progress: {
+    height: '100%',
+    backgroundColor: Colors.light.accent,
+  },
+  progressTouchable: {
+    position: 'absolute',
+    top: -10,
+    left: 20,
+    right: 20,
+    height: 44,
+  },
+  progressOverlay: {
+    flex: 1,
+  },
+  timeContainer: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    marginTop: 5,
+  },
+  timeText: {
+    color: '#FFFFFF',
+    fontSize: 12,
   },
   overlay: {
     position: 'absolute',
-    bottom: 0,
+    bottom: 95,
     left: 0,
     right: 0,
-    paddingBottom: 100, // Add extra padding for tab bar
+    backgroundColor: 'rgba(51, 51, 51, 0.5)',
   },
   textContainer: {
-    padding: 20,
+    paddingHorizontal: 20,
+    paddingTop: 20,
+    paddingBottom: 5,
   },
   title: {
     fontSize: 24,
     fontWeight: 'bold',
-    marginBottom: 8,
-    textShadowColor: 'rgba(0, 0, 0, 0.75)',
+    marginBottom: 2,
+    textShadowColor: 'rgba(51, 51, 51, 0.75)',
     textShadowOffset: { width: 0, height: 1 },
     textShadowRadius: 3,
   },
   description: {
     fontSize: 16,
-    marginBottom: 4,
-    textShadowColor: 'rgba(0, 0, 0, 0.75)',
+    marginBottom: 0,
+    textShadowColor: 'rgba(51, 51, 51, 0.75)',
     textShadowOffset: { width: 0, height: 1 },
     textShadowRadius: 3,
   },

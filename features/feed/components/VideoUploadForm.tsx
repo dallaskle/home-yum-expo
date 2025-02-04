@@ -163,6 +163,7 @@ const styles = StyleSheet.create({
     marginBottom: 20,
     borderRadius: 8,
     overflow: 'hidden',
+    backgroundColor: '#333333',
   },
   preview: {
     flex: 1,
@@ -174,6 +175,7 @@ const styles = StyleSheet.create({
     padding: 12,
     marginBottom: 15,
     fontSize: 16,
+    backgroundColor: '#333333',
   },
   submitButton: {
     padding: 15,

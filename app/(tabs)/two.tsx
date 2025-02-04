@@ -15,9 +15,10 @@ export default function TabTwoScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
+    backgroundColor: '#333333',
   },
   content: {
     flex: 1,
-    backgroundColor: 'transparent',
+    backgroundColor: '#333333',
   },
 });
