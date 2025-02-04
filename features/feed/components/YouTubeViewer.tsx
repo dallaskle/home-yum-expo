@@ -1,5 +1,5 @@
-import React, { useState, useCallback, useEffect } from 'react';
-import { StyleSheet, View, Dimensions, TextInput, TouchableOpacity, Text } from 'react-native';
+import React, { useState, useCallback, useEffect, useRef } from 'react';
+import { StyleSheet, View, Dimensions, TextInput, TouchableOpacity, Text, FlatList } from 'react-native';
 import YoutubeIframe from 'react-native-youtube-iframe';
 import { YOUTUBE_API_KEY } from '../../../config/youtube.config';
 
@@ -83,10 +83,10 @@ export function YouTubeViewer() {
   const [videoQueue, setVideoQueue] = useState<YouTubeVideo[]>([]);
   const [nextPageToken, setNextPageToken] = useState<string | undefined>();
   const [currentSearch, setCurrentSearch] = useState('');
-  const [currentDimensions, setCurrentDimensions] = useState({ 
-    width: SCREEN_WIDTH,
-    height: SCREEN_HEIGHT
-  });
+  const flatListRef = useRef<FlatList>(null);
+  const viewabilityConfig = useRef({
+    itemVisiblePercentThreshold: 50
+  }).current;
 
   const fetchMoreVideos = useCallback(async (pageToken?: string) => {
     if (!currentSearch || loading) return;
@@ -148,14 +148,6 @@ export function YouTubeViewer() {
     }
   }, [videoQueue, videoId]);
 
-  // Update dimensions when video changes
-  useEffect(() => {
-    if (videoQueue.length > 0) {
-      const dimensions = calculateDimensions(videoQueue[0]);
-      setCurrentDimensions(dimensions);
-    }
-  }, [videoQueue]);
-
   // Update video URL when videoId changes
   useEffect(() => {
     if (videoId) {
@@ -165,27 +157,15 @@ export function YouTubeViewer() {
     }
   }, [videoId]);
 
-  const handleNext = useCallback(() => {
-    if (videoQueue.length === 0) return;
-    
-    // Remove current video and set next video
-    setVideoQueue(prevQueue => prevQueue.slice(1));
-    if (videoQueue.length > 1) {
-      setVideoId(videoQueue[1].id.videoId);
-    }
-  }, [videoQueue]);
-
-  return (
-    <View style={styles.container}>
-      <View style={styles.videoContainer}>
-        <View style={{
-          position: 'absolute',
-          left: -(SCREEN_WIDTH),
-        }}>
+  const renderVideo = useCallback(({ item, index }: { item: YouTubeVideo; index: number }) => {
+    const dimensions = calculateDimensions(item);
+    return (
+      <View style={[styles.videoItem, { width: SCREEN_WIDTH, height: SCREEN_HEIGHT - 120 }]}>
+        <View style={styles.videoWrapper}>
           <YoutubeIframe
-            height={SCREEN_HEIGHT}
-            width={SCREEN_WIDTH * 3}
-            videoId={videoId}
+            height={SCREEN_HEIGHT - 120}
+            width={dimensions.width * 3}
+            videoId={item.id.videoId}
             play={true}
             webViewProps={{
               androidLayerType: 'hardware',
@@ -193,7 +173,33 @@ export function YouTubeViewer() {
           />
         </View>
       </View>
-      <View style={styles.overlay}>
+    );
+  }, []);
+
+  const onViewableItemsChanged = useCallback(({ viewableItems, changed }: any) => {
+    if (viewableItems.length > 0) {
+      // Check if we need to fetch more videos
+      const lastVisibleIndex = viewableItems[viewableItems.length - 1].index;
+      if (lastVisibleIndex >= videoQueue.length - 3) {
+        fetchMoreVideos(nextPageToken);
+      }
+    }
+  }, [fetchMoreVideos, nextPageToken, videoQueue.length]);
+
+  const handleNext = useCallback(() => {
+    if (flatListRef.current && videoQueue.length > 0) {
+      flatListRef.current.scrollToIndex({
+        index: 1,
+        animated: true
+      });
+    }
+  }, [videoQueue.length]);
+
+  console.log('videoQueue', videoQueue.length);
+
+  return (
+    <View style={styles.container}>
+      <View style={styles.overlay} pointerEvents="box-none">
         <View style={styles.searchContainer}>
           <TextInput
             style={styles.searchInput}
@@ -212,14 +218,19 @@ export function YouTubeViewer() {
             </Text>
           </TouchableOpacity>
         </View>
-        <TouchableOpacity 
-          style={[styles.nextButton, { opacity: videoQueue.length > 0 ? 1 : 0.5 }]} 
-          onPress={handleNext}
-          disabled={videoQueue.length === 0}
-        >
-          <Text style={styles.nextButtonText}>Next Video</Text>
-        </TouchableOpacity>
       </View>
+      <FlatList
+        ref={flatListRef}
+        data={videoQueue}
+        renderItem={renderVideo}
+        keyExtractor={(item) => item.id.videoId}
+        pagingEnabled
+        showsVerticalScrollIndicator={false}
+        onViewableItemsChanged={onViewableItemsChanged}
+        viewabilityConfig={viewabilityConfig}
+        style={styles.flatList}
+        contentContainerStyle={styles.flatListContent}
+      />
     </View>
   );
 }
@@ -228,30 +239,36 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: '#333333',
-    width: SCREEN_WIDTH,
-    height: SCREEN_HEIGHT,
   },
-  videoContainer: {
+  flatList: {
     flex: 1,
-    backgroundColor: '#333333',
-    marginTop: 60,
+  },
+  flatListContent: {
+    marginTop: 60, // Add space for the search container
+  },
+  videoItem: {
+    justifyContent: 'center',
     alignItems: 'center',
     overflow: 'hidden',
-    position: 'relative'
+  },
+  videoWrapper: {
+    position: 'absolute',
+    left: -SCREEN_WIDTH,
+    justifyContent: 'center',
+    alignItems: 'center',
   },
   overlay: {
     position: 'absolute',
     top: 0,
     left: 0,
     right: 0,
-    bottom: 0,
-    backgroundColor: 'transparent',
+    zIndex: 2,
   },
   searchContainer: {
     flexDirection: 'row',
     padding: 10,
     gap: 10,
-    backgroundColor: 'rgba(51, 51, 51, 0.5)',
+    backgroundColor: 'rgba(51, 51, 51, 0.9)',
   },
   searchInput: {
     flex: 1,
@@ -270,20 +287,5 @@ const styles = StyleSheet.create({
   searchButtonText: {
     color: '#ffffff',
     fontWeight: 'bold',
-  },
-  nextButton: {
-    position: 'absolute',
-    bottom: 20,
-    left: 10,
-    right: 10,
-    backgroundColor: '#FF0000',
-    padding: 15,
-    borderRadius: 8,
-    alignItems: 'center',
-  },
-  nextButtonText: {
-    color: '#ffffff',
-    fontWeight: 'bold',
-    fontSize: 16,
   },
 }); 
