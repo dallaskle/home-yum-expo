@@ -21,6 +21,7 @@ export interface User {
    */
   export interface Video {
     videoId: string; // Primary Key
+    userId: string; // Foreign Key to User (uploader)
     videoTitle: string;
     videoDescription: string;
     mealName: string;

@@ -1,5 +1,6 @@
 import { Video } from '@/types/database.types';
 import { auth } from '@/config/auth';
+import { getIdToken } from 'firebase/auth';
 
 const API_URL = process.env.EXPO_PUBLIC_API_URL || 'http://localhost:8001';
 
@@ -65,27 +66,35 @@ export class FeedAPI {
     }
   }
 
-  static async uploadVideo(video: VideoUpload): Promise<Video> {
+  static async uploadVideo(data: {
+    videoUrl: string;
+    thumbnailUrl: string;
+    videoTitle: string;
+    videoDescription: string;
+    mealName: string;
+    mealDescription: string;
+    duration: number;
+  }) {
     try {
-      const idToken = await auth.currentUser?.getIdToken();
-      if (!idToken) throw new Error('Not authenticated');
+      const token = await getIdToken(auth.currentUser!);
 
+      // Send data to backend which will handle storage uploads
       const response = await fetch(`${API_URL}/api/videos/upload`, {
         method: 'POST',
         headers: {
-          'Authorization': `Bearer ${idToken}`,
           'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`,
         },
-        body: JSON.stringify(video),
+        body: JSON.stringify(data),
       });
 
       if (!response.ok) {
         throw new Error('Failed to upload video');
       }
 
-      return await response.json();
+      return response.json();
     } catch (error) {
-      console.error('Error uploading video:', error);
+      console.error('Upload error:', error);
       throw error;
     }
   }

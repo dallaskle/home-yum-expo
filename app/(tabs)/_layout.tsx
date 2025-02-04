@@ -166,6 +166,13 @@ function RootLayoutNav() {
               tabBarIcon: ({ color }) => <TabBarIcon name="upload" color={color} />,
             }}
           />
+          <Tabs.Screen
+            name="profile"
+            options={{
+              title: 'Profile',
+              tabBarIcon: ({ color }) => <TabBarIcon name="user" color={color} />,
+            }}
+          />
         </Tabs>
       </ThemeProvider>
     </GestureHandlerRootView>
