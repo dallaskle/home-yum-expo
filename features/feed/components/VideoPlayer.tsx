@@ -4,6 +4,7 @@ import { ResizeMode, Video as ExpoVideo, AVPlaybackStatus } from 'expo-av';
 import { Video as VideoType } from '@/types/database.types';
 import Colors from '@/constants/Colors';
 import { useColorScheme } from '@/components/useColorScheme';
+import { BlurView } from 'expo-blur';
 
 const { width: SCREEN_WIDTH, height: SCREEN_HEIGHT } = Dimensions.get('window');
 
@@ -40,30 +41,30 @@ export function VideoPlayer({ video, isActive, onEnd }: VideoPlayerProps) {
 
   return (
     <View style={styles.container}>
-      <View style={styles.videoWrapper}>
-        <ExpoVideo
-          ref={videoRef}
-          source={{ uri: video.videoUrl }}
-          style={styles.video}
-          resizeMode={ResizeMode.CONTAIN}
-          shouldPlay={isActive}
-          isLooping={false}
-          onPlaybackStatusUpdate={handlePlaybackStatusUpdate}
-        />
-      </View>
+      <ExpoVideo
+        ref={videoRef}
+        source={{ uri: video.videoUrl }}
+        style={styles.video}
+        resizeMode={ResizeMode.CONTAIN}
+        shouldPlay={isActive}
+        isLooping={false}
+        onPlaybackStatusUpdate={handlePlaybackStatusUpdate}
+      />
       
       {/* Video Info Overlay */}
-      <View style={styles.overlay}>
-        <Text style={[styles.title, { color: Colors[colorScheme ?? 'light'].text }]}>
-          {video.videoTitle}
-        </Text>
-        <Text style={[styles.description, { color: Colors[colorScheme ?? 'light'].text }]}>
-          {video.mealName}
-        </Text>
-        <Text style={[styles.description, { color: Colors[colorScheme ?? 'light'].text }]}>
-          {video.mealDescription}
-        </Text>
-      </View>
+      <BlurView intensity={30} tint={colorScheme === 'dark' ? 'dark' : 'light'} style={styles.overlay}>
+        <View style={styles.textContainer}>
+          <Text style={[styles.title, { color: Colors[colorScheme ?? 'light'].text }]}>
+            {video.videoTitle}
+          </Text>
+          <Text style={[styles.description, { color: Colors[colorScheme ?? 'light'].text }]}>
+            {video.mealName}
+          </Text>
+          <Text style={[styles.description, { color: Colors[colorScheme ?? 'light'].text }]}>
+            {video.mealDescription}
+          </Text>
+        </View>
+      </BlurView>
     </View>
   );
 }
@@ -74,18 +75,9 @@ const styles = StyleSheet.create({
     backgroundColor: '#000',
     width: SCREEN_WIDTH,
     height: SCREEN_HEIGHT,
-    overflow: 'hidden',
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  videoWrapper: {
-    width: SCREEN_WIDTH,
-    height: SCREEN_HEIGHT,
-    position: 'absolute',
-    justifyContent: 'center',
-    alignItems: 'center',
   },
   video: {
+    flex: 1,
     width: SCREEN_WIDTH,
     height: SCREEN_HEIGHT,
   },
@@ -94,17 +86,24 @@ const styles = StyleSheet.create({
     bottom: 0,
     left: 0,
     right: 0,
+    paddingBottom: 100, // Add extra padding for tab bar
+  },
+  textContainer: {
     padding: 20,
-    paddingBottom: 50,
-    backgroundColor: 'rgba(0, 0, 0, 0.4)',
   },
   title: {
     fontSize: 24,
     fontWeight: 'bold',
     marginBottom: 8,
+    textShadowColor: 'rgba(0, 0, 0, 0.75)',
+    textShadowOffset: { width: 0, height: 1 },
+    textShadowRadius: 3,
   },
   description: {
     fontSize: 16,
     marginBottom: 4,
+    textShadowColor: 'rgba(0, 0, 0, 0.75)',
+    textShadowOffset: { width: 0, height: 1 },
+    textShadowRadius: 3,
   },
 }); 
