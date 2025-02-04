@@ -1,9 +1,11 @@
 import React, { useEffect, useRef } from 'react';
-import { StyleSheet, View, Text } from 'react-native';
+import { StyleSheet, View, Text, Dimensions } from 'react-native';
 import { ResizeMode, Video as ExpoVideo, AVPlaybackStatus } from 'expo-av';
 import { Video as VideoType } from '@/types/database.types';
 import Colors from '@/constants/Colors';
 import { useColorScheme } from '@/components/useColorScheme';
+
+const { width: SCREEN_WIDTH, height: SCREEN_HEIGHT } = Dimensions.get('window');
 
 interface VideoPlayerProps {
   video: VideoType;
@@ -38,15 +40,17 @@ export function VideoPlayer({ video, isActive, onEnd }: VideoPlayerProps) {
 
   return (
     <View style={styles.container}>
-      <ExpoVideo
-        ref={videoRef}
-        source={{ uri: video.videoUrl }}
-        style={styles.video}
-        resizeMode={ResizeMode.COVER}
-        shouldPlay={isActive}
-        isLooping={false}
-        onPlaybackStatusUpdate={handlePlaybackStatusUpdate}
-      />
+      <View style={styles.videoWrapper}>
+        <ExpoVideo
+          ref={videoRef}
+          source={{ uri: video.videoUrl }}
+          style={styles.video}
+          resizeMode={ResizeMode.CONTAIN}
+          shouldPlay={isActive}
+          isLooping={false}
+          onPlaybackStatusUpdate={handlePlaybackStatusUpdate}
+        />
+      </View>
       
       {/* Video Info Overlay */}
       <View style={styles.overlay}>
@@ -68,10 +72,22 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: '#000',
+    width: SCREEN_WIDTH,
+    height: SCREEN_HEIGHT,
+    overflow: 'hidden',
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  videoWrapper: {
+    width: SCREEN_WIDTH,
+    height: SCREEN_HEIGHT,
+    position: 'absolute',
+    justifyContent: 'center',
+    alignItems: 'center',
   },
   video: {
-    flex: 1,
-    width: '100%',
+    width: SCREEN_WIDTH,
+    height: SCREEN_HEIGHT,
   },
   overlay: {
     position: 'absolute',
