@@ -44,11 +44,18 @@ export function VideoFeed() {
     .onEnd((event) => {
       isGestureActive.value = false;
       
-      // Make it very easy to trigger - just check direction
-      if (event.translationY > 0) {
-        runOnJS(handleSwipe)('down');
+      // Add a minimum threshold of 50 units for the swipe to register
+      const SWIPE_THRESHOLD = 50;
+      
+      if (Math.abs(event.translationY) >= SWIPE_THRESHOLD) {
+        if (event.translationY > 0) {
+          runOnJS(handleSwipe)('down');
+        } else {
+          runOnJS(handleSwipe)('up');
+        }
       } else {
-        runOnJS(handleSwipe)('up');
+        // If threshold not met, bounce back to original position
+        translateY.value = withTiming(0, { duration: 300 });
       }
     });
 

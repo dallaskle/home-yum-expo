@@ -114,10 +114,7 @@ export function VideoPlayer({ video, isActive, onEnd }: VideoPlayerProps) {
             {video.videoTitle}
           </Text>
           <Text style={[styles.description, { color: '#FFFFFF' }]}>
-            {video.mealName}
-          </Text>
-          <Text style={[styles.description, { color: '#FFFFFF' }]}>
-            {video.mealDescription}
+            {video.mealName} | {video.mealDescription}
           </Text>
         </View>
       </View>
@@ -195,7 +192,7 @@ const styles = StyleSheet.create({
     paddingBottom: 5,
   },
   title: {
-    fontSize: 24,
+    fontSize: 16,
     fontWeight: 'bold',
     marginBottom: 2,
     textShadowColor: 'rgba(51, 51, 51, 0.75)',
@@ -203,7 +200,7 @@ const styles = StyleSheet.create({
     textShadowRadius: 3,
   },
   description: {
-    fontSize: 16,
+    fontSize: 12,
     marginBottom: 0,
     textShadowColor: 'rgba(51, 51, 51, 0.75)',
     textShadowOffset: { width: 0, height: 1 },
