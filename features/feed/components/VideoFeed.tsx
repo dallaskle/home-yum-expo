@@ -97,7 +97,7 @@ export function VideoFeed() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#000',
+    backgroundColor: '#333333',
   },
   feedContainer: {
     flex: 1,

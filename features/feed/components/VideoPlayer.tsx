@@ -72,7 +72,7 @@ export function VideoPlayer({ video, isActive, onEnd }: VideoPlayerProps) {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#000',
+    backgroundColor: '#333333',
     width: SCREEN_WIDTH,
     height: SCREEN_HEIGHT,
   },

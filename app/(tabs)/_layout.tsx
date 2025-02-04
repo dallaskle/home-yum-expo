@@ -120,15 +120,15 @@ function RootLayoutNav() {
     colors: {
       ...(colorScheme === 'dark' ? DarkTheme.colors : DefaultTheme.colors),
       primary: Colors[colorScheme ?? 'light'].accent,
-      background: 'transparent',
-      text: Colors[colorScheme ?? 'light'].text,
+      background: '#333333',
+      text: '#FFFFFF',
       border: 'transparent',
       card: 'transparent',
     },
   };
 
   return (
-    <GestureHandlerRootView style={{ flex: 1 }}>
+    <GestureHandlerRootView style={{ flex: 1, backgroundColor: '#333333' }}>
       <ThemeProvider value={customTheme}>
         <Tabs
           screenOptions={{
