@@ -142,17 +142,15 @@ const styles = StyleSheet.create({
   },
   progressContainer: {
     position: 'absolute',
-    bottom: 60,
+    bottom:76,
     left: 0,
     right: 0,
     paddingHorizontal: 20,
-    backgroundColor: 'rgba(51, 51, 51, 0.5)',
     paddingTop: 10,
     paddingBottom: 5,
   },
   progressBar: {
     height: 4,
-    backgroundColor: 'rgba(255, 255, 255, 0.3)',
     borderRadius: 2,
     overflow: 'hidden',
   },
@@ -181,10 +179,9 @@ const styles = StyleSheet.create({
   },
   overlay: {
     position: 'absolute',
-    bottom: 95,
+    bottom: 112,
     left: 0,
     right: 0,
-    backgroundColor: 'rgba(51, 51, 51, 0.5)',
   },
   textContainer: {
     paddingHorizontal: 20,

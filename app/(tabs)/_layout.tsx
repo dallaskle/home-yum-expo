@@ -135,12 +135,10 @@ function RootLayoutNav() {
             headerShown: false,
             tabBarStyle: {
               backgroundColor: 'transparent',
-              borderTopColor: 'rgba(255, 102, 0, 0.5)', // FF6600 with 0.5 opacity
-              borderTopWidth: 1,
               position: 'absolute',
-              elevation: 0,
-              height: 60,
-              paddingBottom: 10,
+              elevation: 10,
+              height: 72,
+              paddingBottom: 20,
               shadowColor: '#FF6600',
               shadowOffset: {
                 width: 0,
