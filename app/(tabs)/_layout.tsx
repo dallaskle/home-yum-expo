@@ -130,22 +130,35 @@ function RootLayoutNav() {
   return (
     <GestureHandlerRootView style={{ flex: 1 }}>
       <ThemeProvider value={customTheme}>
-        <Stack
+        <Tabs
           screenOptions={{
-            headerTransparent: true,
-            headerBlurEffect: undefined,
-            headerStyle: {
+            headerShown: false,
+            tabBarStyle: {
               backgroundColor: 'transparent',
+              borderTopColor: 'transparent',
+              position: 'absolute',
+              elevation: 0,
+              height: 60,
+              paddingBottom: 10,
             },
-            contentStyle: {
-              backgroundColor: 'transparent',
-            },
-          }}
-        >
-          <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
-          <Stack.Screen name="modal" options={{ presentation: 'modal' }} />
-          <Stack.Screen name="(auth)" options={{ headerShown: false }} />
-        </Stack>
+            tabBarActiveTintColor: Colors[colorScheme ?? 'light'].accent,
+            tabBarInactiveTintColor: '#FFFFFF',
+          }}>
+          <Tabs.Screen
+            name="index"
+            options={{
+              title: 'Feed',
+              tabBarIcon: ({ color }) => <TabBarIcon name="video-camera" color={color} />,
+            }}
+          />
+          <Tabs.Screen
+            name="two"
+            options={{
+              title: 'Upload',
+              tabBarIcon: ({ color }) => <TabBarIcon name="upload" color={color} />,
+            }}
+          />
+        </Tabs>
       </ThemeProvider>
     </GestureHandlerRootView>
   );

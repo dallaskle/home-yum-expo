@@ -55,9 +55,10 @@ function RootLayoutNav() {
       ...(colorScheme === 'dark' ? DarkTheme.colors : DefaultTheme.colors),
       primary: Colors[colorScheme ?? 'light'].accent,
       background: Colors[colorScheme ?? 'light'].background,
-      text: Colors[colorScheme ?? 'light'].text,
+      text: '#FFFFFF',
       border: Colors[colorScheme ?? 'light'].border,
-      card: Colors[colorScheme ?? 'light'].background,
+      card: '#000000',
+      notification: Colors[colorScheme ?? 'light'].accent,
     },
   };
 

@@ -54,13 +54,13 @@ export function VideoPlayer({ video, isActive, onEnd }: VideoPlayerProps) {
       {/* Video Info Overlay */}
       <BlurView intensity={30} tint={colorScheme === 'dark' ? 'dark' : 'light'} style={styles.overlay}>
         <View style={styles.textContainer}>
-          <Text style={[styles.title, { color: Colors[colorScheme ?? 'light'].text }]}>
+          <Text style={[styles.title, { color: '#FFFFFF' }]}>
             {video.videoTitle}
           </Text>
-          <Text style={[styles.description, { color: Colors[colorScheme ?? 'light'].text }]}>
+          <Text style={[styles.description, { color: '#FFFFFF' }]}>
             {video.mealName}
           </Text>
-          <Text style={[styles.description, { color: Colors[colorScheme ?? 'light'].text }]}>
+          <Text style={[styles.description, { color: '#FFFFFF' }]}>
             {video.mealDescription}
           </Text>
         </View>
