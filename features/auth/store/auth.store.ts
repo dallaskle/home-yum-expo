@@ -9,7 +9,6 @@ import { UserAPI } from '../api/user.api';
 interface AuthState {
   firebaseUser: FirebaseUser | null;
   user: User | null;
-  tokens: AuthResponse['tokens'] | null;
   isLoading: boolean;
   error: string | null;
   isInitialized: boolean;
@@ -25,7 +24,6 @@ interface AuthState {
 interface AuthStateUpdate {
   firebaseUser?: FirebaseUser | null;
   user?: User | null;
-  tokens?: AuthResponse['tokens'] | null;
   error?: string | null;
   isLoading?: boolean;
   isInitialized?: boolean;
@@ -40,7 +38,6 @@ export const useAuthStore = create<AuthState>()((set, get) => {
   return {
     firebaseUser: null,
     user: null,
-    tokens: null,
     isLoading: false,
     error: null,
     isInitialized: false,
@@ -67,7 +64,6 @@ export const useAuthStore = create<AuthState>()((set, get) => {
 
     initialize: async () => {
       if (get().isInitialized) {
-        // Return a no-op unsubscribe function if already initialized
         return () => {};
       }
       
@@ -75,11 +71,10 @@ export const useAuthStore = create<AuthState>()((set, get) => {
       
       try {
         const storedAuth = await authService.getStoredAuth();
-        if (storedAuth && storedAuth.tokens.expirationTime > Date.now()) {
+        if (storedAuth) {
           updateState({
             firebaseUser: storedAuth.firebaseUser,
             user: storedAuth.user,
-            tokens: storedAuth.tokens,
             error: null,
           });
         }
@@ -95,19 +90,12 @@ export const useAuthStore = create<AuthState>()((set, get) => {
               return;
             }
 
-            const tokens = {
-              accessToken: (firebaseUser as any).stsTokenManager.accessToken,
-              refreshToken: (firebaseUser as any).stsTokenManager.refreshToken,
-              expirationTime: (firebaseUser as any).stsTokenManager.expirationTime,
-            };
-            
             try {
               const user = await UserAPI.getUser();
-              await authService.saveAuthData(firebaseUser, user, tokens);
+              await authService.saveAuthData(firebaseUser, user);
               updateState({
                 firebaseUser,
                 user,
-                tokens,
                 error: null,
               });
             } catch (error) {
@@ -116,7 +104,6 @@ export const useAuthStore = create<AuthState>()((set, get) => {
                 updateState({
                   firebaseUser: null,
                   user: null,
-                  tokens: null,
                   error: 'User profile not found',
                 });
               }
@@ -137,7 +124,6 @@ export const useAuthStore = create<AuthState>()((set, get) => {
             updateState({
               firebaseUser: null,
               user: null,
-              tokens: null,
               error: null,
             });
           }
@@ -155,7 +141,6 @@ export const useAuthStore = create<AuthState>()((set, get) => {
         updateState({
           firebaseUser: response.firebaseUser,
           user: response.user,
-          tokens: response.tokens,
           error: null,
           isLoading: false,
         });
@@ -180,7 +165,6 @@ export const useAuthStore = create<AuthState>()((set, get) => {
           updateState({
             firebaseUser: response.firebaseUser,
             user,
-            tokens: response.tokens,
             error: null,
             isLoading: false,
             isSigningUp: false,
@@ -206,7 +190,6 @@ export const useAuthStore = create<AuthState>()((set, get) => {
         updateState({
           firebaseUser: null,
           user: null,
-          tokens: null,
           error: null,
           isLoading: false,
         });

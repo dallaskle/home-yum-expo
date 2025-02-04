@@ -10,8 +10,10 @@ const API_URL = __DEV__
 
 export class UserAPI {
   private static async getAuthToken(): Promise<string> {
+    console.log('Getting auth token...');
     const token = await auth.currentUser?.getIdToken();
     if (!token) throw new Error('No auth token available');
+    console.log('Token received:', token.substring(0, 10) + '...');
     return token;
   }
 
