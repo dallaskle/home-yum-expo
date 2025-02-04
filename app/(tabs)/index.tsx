@@ -1,32 +1,12 @@
-import { Button, StyleSheet } from 'react-native';
-import { signOut } from 'firebase/auth';
-import { auth } from '@/config/auth';
-import { Text, View, AccentText } from '@/components/Themed';
-import EditScreenInfo from '@/components/EditScreenInfo';
+import { StyleSheet } from 'react-native';
+import { VideoFeed } from '@/features/feed/components/VideoFeed';
+
 export default function TabOneScreen() {
-  return (
-    <View style={styles.container}>
-      <AccentText style={styles.title}>For You</AccentText>
-      <View style={styles.separator} lightColor="#eee" darkColor="rgba(255,255,255,0.1)" />
-      <Button title="Sign Out" onPress={() => signOut(auth)} />
-      <EditScreenInfo path="app/(tabs)/index.tsx" />
-    </View>
-  );
+  return <VideoFeed />;
 }
 
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  title: {
-    fontSize: 28,
-    fontWeight: 'bold',
-  },
-  separator: {
-    marginVertical: 30,
-    height: 1,
-    width: '80%',
   },
 });

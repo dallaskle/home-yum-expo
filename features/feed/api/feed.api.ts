@@ -1,0 +1,92 @@
+import { Video } from '@/types/database.types';
+import { auth } from '@/config/auth';
+
+const API_URL = process.env.EXPO_PUBLIC_API_URL || 'http://localhost:8001';
+
+interface VideoUpload {
+  videoTitle: string;
+  videoDescription: string;
+  mealName: string;
+  mealDescription: string;
+  videoUrl: string;
+  thumbnailUrl: string;
+  duration: number;
+}
+
+export class FeedAPI {
+  static async getFeed(pageSize: number = 10, lastVideoId?: string): Promise<Video[]> {
+    try {
+      const idToken = await auth.currentUser?.getIdToken();
+      if (!idToken) throw new Error('Not authenticated');
+
+      const queryParams = new URLSearchParams({
+        page_size: pageSize.toString(),
+        ...(lastVideoId && { last_video_id: lastVideoId }),
+      });
+
+      const response = await fetch(`${API_URL}/api/videos/feed?${queryParams}`, {
+        headers: {
+          'Authorization': `Bearer ${idToken}`,
+          'Content-Type': 'application/json',
+        },
+      });
+
+      if (!response.ok) {
+        throw new Error('Failed to fetch video feed');
+      }
+
+      return await response.json();
+    } catch (error) {
+      console.error('Error fetching feed:', error);
+      throw error;
+    }
+  }
+
+  static async getVideo(videoId: string): Promise<Video> {
+    try {
+      const idToken = await auth.currentUser?.getIdToken();
+      if (!idToken) throw new Error('Not authenticated');
+
+      const response = await fetch(`${API_URL}/api/videos/${videoId}`, {
+        headers: {
+          'Authorization': `Bearer ${idToken}`,
+          'Content-Type': 'application/json',
+        },
+      });
+
+      if (!response.ok) {
+        throw new Error('Failed to fetch video');
+      }
+
+      return await response.json();
+    } catch (error) {
+      console.error('Error fetching video:', error);
+      throw error;
+    }
+  }
+
+  static async uploadVideo(video: VideoUpload): Promise<Video> {
+    try {
+      const idToken = await auth.currentUser?.getIdToken();
+      if (!idToken) throw new Error('Not authenticated');
+
+      const response = await fetch(`${API_URL}/api/videos/upload`, {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${idToken}`,
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(video),
+      });
+
+      if (!response.ok) {
+        throw new Error('Failed to upload video');
+      }
+
+      return await response.json();
+    } catch (error) {
+      console.error('Error uploading video:', error);
+      throw error;
+    }
+  }
+} 
