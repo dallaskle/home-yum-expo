@@ -23,6 +23,7 @@ export function YouTubeViewer() {
   const [videoId, setVideoId] = useState('');
   const [videoUrl, setVideoUrl] = useState<string | null>(null);
   const flatListRef = useRef<FlatList>(null);
+  const [play, setPlay] = useState(false);
   
   const viewabilityConfig = useRef({
     itemVisiblePercentThreshold: 50
@@ -53,9 +54,17 @@ export function YouTubeViewer() {
             height={SCREEN_HEIGHT - 120}
             width={dimensions.width * 3}
             videoId={item.id.videoId}
-            play={true}
+            play={play}
+            onReady={() => {
+              console.log('Video is ready');
+              setPlay(true);
+            }}
             webViewProps={{
               androidLayerType: 'hardware',
+            }}
+            initialPlayerParams={{
+              loop: true,
+              controls: false,
             }}
           />
         </View>
