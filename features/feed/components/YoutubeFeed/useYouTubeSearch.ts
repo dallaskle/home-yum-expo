@@ -1,9 +1,10 @@
-import { useState, useCallback, useEffect } from 'react';
+import { useState, useCallback, useEffect, useRef } from 'react';
 import { YOUTUBE_API_KEY } from '../../../../config/youtube.config';
 import { YouTubeVideo, SearchResponse } from './types';
 import { isLikelyShort } from './utils';
 
 const DESIRED_QUEUE_SIZE = 10;
+const FETCH_THRESHOLD = 3; // Only fetch more when we're this close to the end
 
 export const useYouTubeSearch = () => {
   const [searchQuery, setSearchQuery] = useState('');
@@ -11,15 +12,18 @@ export const useYouTubeSearch = () => {
   const [videoQueue, setVideoQueue] = useState<YouTubeVideo[]>([]);
   const [nextPageToken, setNextPageToken] = useState<string | undefined>();
   const [currentSearch, setCurrentSearch] = useState('');
+  const isFetchingRef = useRef(false);
 
   const fetchMoreVideos = useCallback(async (pageToken?: string) => {
-    if (!currentSearch || loading) {
-      console.log('⛔ Skipping fetch:', { currentSearch, loading });
+    if (!currentSearch || loading || isFetchingRef.current) {
+      console.log('⛔ Skipping fetch:', { currentSearch, loading, isFetching: isFetchingRef.current });
       return;
     }
     
+    isFetchingRef.current = true;
     console.log('🔍 Fetching videos:', { currentSearch, pageToken });
     setLoading(true);
+    
     try {
       const pageParam = pageToken ? `&pageToken=${pageToken}` : '';
       const response = await fetch(
@@ -42,6 +46,9 @@ export const useYouTubeSearch = () => {
         });
         
         setVideoQueue(prevQueue => {
+          if (prevQueue.length >= DESIRED_QUEUE_SIZE) {
+            return prevQueue;
+          }
           const newQueue = [...prevQueue, ...shortsVideos];
           const finalQueue = newQueue.slice(0, DESIRED_QUEUE_SIZE);
           console.log('🎞 Updated queue:', {
@@ -51,7 +58,9 @@ export const useYouTubeSearch = () => {
           return finalQueue;
         });
 
-        setNextPageToken(data.nextPageToken);
+        if (shortsVideos.length > 0) {
+          setNextPageToken(data.nextPageToken);
+        }
       } else {
         console.log('⚠️ No items in YouTube response');
       }
@@ -59,19 +68,16 @@ export const useYouTubeSearch = () => {
       console.error('❌ Error searching YouTube:', error);
     } finally {
       setLoading(false);
+      isFetchingRef.current = false;
     }
   }, [currentSearch, loading]);
 
   useEffect(() => {
-    console.log('🔄 Checking queue size:', {
-      currentSize: videoQueue.length,
-      desired: DESIRED_QUEUE_SIZE,
-      hasNextPage: !!nextPageToken
-    });
-    if (videoQueue.length < DESIRED_QUEUE_SIZE && nextPageToken) {
+    if (videoQueue.length < FETCH_THRESHOLD && nextPageToken && !loading) {
+      console.log('🔄 Queue below threshold, fetching more');
       fetchMoreVideos(nextPageToken);
     }
-  }, [videoQueue.length, nextPageToken, fetchMoreVideos]);
+  }, [videoQueue.length, nextPageToken, fetchMoreVideos, loading]);
 
   const searchYouTube = useCallback(async () => {
     if (!searchQuery.trim()) {

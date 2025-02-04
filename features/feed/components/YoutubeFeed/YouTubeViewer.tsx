@@ -65,28 +65,32 @@ export function YouTubeViewer() {
     }
   }, [videoId]);
 
-  const renderVideo = useCallback(({ item }: { item: YouTubeVideo }) => {
+  const renderVideo = useCallback(({ item, index }: { item: YouTubeVideo; index: number }) => {
     console.log('🎬 Rendering video:', {
       videoId: item.id.videoId,
       play,
-      title: item.snippet.title
+      title: item.snippet.title,
+      index
     });
     
     const dimensions = calculateDimensions(item);
     return (
-      <View style={[styles.videoItem, { width: dimensions.width, height: SCREEN_HEIGHT - 120 }]}>
+      <View style={[styles.videoItem, { width: dimensions.width, height: SCREEN_HEIGHT }]}>
         <View style={styles.videoWrapper}>
           <YoutubeIframe
             height={SCREEN_HEIGHT - 120}
             width={dimensions.width * 3}
             videoId={item.id.videoId}
-            play={play}
+            play={play && index === 0}
             onReady={() => {
               console.log('✅ Video ready to play:', {
                 videoId: item.id.videoId,
-                currentPlay: play
+                currentPlay: play,
+                index
               });
-              setPlay(true);
+              if (index === 0) {
+                setPlay(true);
+              }
             }}
             onError={(error) => {
               console.log('❌ YouTube player error:', error);
@@ -101,6 +105,8 @@ export function YouTubeViewer() {
             initialPlayerParams={{
               loop: true,
               controls: false,
+              rel: false,
+              modestbranding: true
             }}
           />
         </View>
@@ -110,19 +116,19 @@ export function YouTubeViewer() {
 
   const onViewableItemsChanged = useCallback(({ viewableItems }: any) => {
     if (viewableItems.length > 0) {
+      const firstVisibleIndex = viewableItems[0].index;
       console.log('👁 Viewable items changed:', {
         visibleItems: viewableItems.length,
-        firstVisibleIndex: viewableItems[0].index,
+        firstVisibleIndex,
         queueLength: videoQueue.length
       });
       
-      const lastVisibleIndex = viewableItems[viewableItems.length - 1].index;
-      if (lastVisibleIndex >= videoQueue.length - 3) {
+      if (firstVisibleIndex >= videoQueue.length - 3 && !loading) {
         console.log('🔄 Fetching more videos');
         fetchMoreVideos(nextPageToken);
       }
     }
-  }, [fetchMoreVideos, nextPageToken, videoQueue.length]);
+  }, [fetchMoreVideos, nextPageToken, videoQueue.length, loading]);
 
   return (
     <View style={styles.container}>
