@@ -2,11 +2,9 @@ import { User } from '@/types/database.types';
 import { auth } from '@/config/auth';
 import Constants from 'expo-constants';
 
-// In development, use localhost with the correct port
+// In development, use local network IP with the correct port
 // In production, use your deployed API URL
-const API_URL = __DEV__ 
-  ? 'http://127.0.0.1:8001/api'
-  : 'https://your-production-api.com/api';  // TODO: Update with your production URL when deployed
+const API_URL = 'https://d74b-24-153-157-38.ngrok-free.app/api';
 
 export class UserAPI {
   private static async getAuthToken(): Promise<string> {

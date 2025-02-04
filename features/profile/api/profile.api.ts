@@ -2,7 +2,7 @@ import { auth } from '@/config/auth';
 import { User } from '@/types/database.types';
 import { getIdToken } from 'firebase/auth';
 
-const API_URL = process.env.EXPO_PUBLIC_API_URL || 'http://localhost:8001';
+const API_URL = 'https://d74b-24-153-157-38.ngrok-free.app';
 
 export class ProfileAPI {
   static async updateProfile(userData: Partial<User>): Promise<User> {

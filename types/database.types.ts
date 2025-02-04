@@ -138,3 +138,65 @@ export interface User {
     notes?: string; // Optional comments
   }
   
+  // Supabase Database Type
+  export type Database = {
+    public: {
+      Tables: {
+        videos: {
+          Row: Video;
+          Insert: Omit<Video, 'videoId'>;
+          Update: Partial<Omit<Video, 'videoId'>>;
+        };
+        users: {
+          Row: User;
+          Insert: Omit<User, 'userId'>;
+          Update: Partial<Omit<User, 'userId'>>;
+        };
+        meals: {
+          Row: Meal;
+          Insert: Omit<Meal, 'mealId'>;
+          Update: Partial<Omit<Meal, 'mealId'>>;
+        };
+        recipes: {
+          Row: Recipe;
+          Insert: Omit<Recipe, 'recipeId'>;
+          Update: Partial<Omit<Recipe, 'recipeId'>>;
+        };
+        recipe_items: {
+          Row: RecipeItem;
+          Insert: Omit<RecipeItem, 'recipeItemId'>;
+          Update: Partial<Omit<RecipeItem, 'recipeItemId'>>;
+        };
+        ingredients: {
+          Row: Ingredient;
+          Insert: Omit<Ingredient, 'ingredientId'>;
+          Update: Partial<Omit<Ingredient, 'ingredientId'>>;
+        };
+        nutrition: {
+          Row: Nutrition;
+          Insert: Omit<Nutrition, 'nutritionId'>;
+          Update: Partial<Omit<Nutrition, 'nutritionId'>>;
+        };
+        user_video_reactions: {
+          Row: UserVideoReaction;
+          Insert: Omit<UserVideoReaction, 'reactionId'>;
+          Update: Partial<Omit<UserVideoReaction, 'reactionId'>>;
+        };
+        user_try_list: {
+          Row: UserTryList;
+          Insert: Omit<UserTryList, 'tryListId'>;
+          Update: Partial<Omit<UserTryList, 'tryListId'>>;
+        };
+      };
+      Views: {
+        [_ in never]: never;
+      };
+      Functions: {
+        [_ in never]: never;
+      };
+      Enums: {
+        reaction_type: ReactionType;
+      };
+    };
+  };
+  

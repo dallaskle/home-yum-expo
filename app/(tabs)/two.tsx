@@ -1,24 +1,17 @@
-import { StyleSheet, ScrollView } from 'react-native';
-import { View } from '@/components/Themed';
-import { VideoUploadForm } from '@/features/feed/components/VideoUploadForm';
+import { StyleSheet, View } from 'react-native';
+import { YouTubeViewer } from '@/features/feed/components/YoutubeFeed/YouTubeViewer';
 
 export default function TabTwoScreen() {
   return (
-    <ScrollView style={styles.container}>
-      <View style={styles.content}>
-        <VideoUploadForm />
-      </View>
-    </ScrollView>
+    <View style={styles.container}>
+      <YouTubeViewer />
+    </View>
   );
 }
 
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#333333',
-  },
-  content: {
-    flex: 1,
-    backgroundColor: '#333333',
+    backgroundColor: '#333333'
   },
 });
