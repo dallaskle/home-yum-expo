@@ -1,6 +1,7 @@
 import { create } from 'zustand';
 import { Video } from '@/types/database.types';
 import { FeedAPI } from '../api/feed.api';
+import { auth } from '@/config/auth';
 
 interface FeedState {
   videos: Video[];
@@ -21,6 +22,12 @@ export const useFeedStore = create<FeedState>()((set, get) => ({
 
   loadFeed: async (reset = false) => {
     try {
+      // Check if user is authenticated first
+      if (!auth.currentUser) {
+        set({ error: 'Not authenticated', isLoading: false });
+        return;
+      }
+
       const { videos, isLoading, hasMore } = get();
       if (isLoading || (!hasMore && !reset)) return;
 

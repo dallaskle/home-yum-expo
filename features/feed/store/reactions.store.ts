@@ -1,6 +1,7 @@
 import { create } from 'zustand';
 import { ReactionsAPI } from '../api/reactions.api';
 import { ReactionType, UserVideoReaction, UserTryList } from '@/types/database.types';
+import { auth } from '@/config/auth';
 
 interface ReactionsState {
   reactions: Record<string, UserVideoReaction>;
@@ -27,6 +28,12 @@ export const useReactionsStore = create<ReactionsState>()((set, get) => ({
   error: null,
 
   initialize: async () => {
+    // Check if user is authenticated first
+    if (!auth.currentUser) {
+      set({ error: 'Not authenticated', isLoading: false });
+      return;
+    }
+
     set({ isLoading: true, error: null });
     try {
       const [reactions, tryList] = await Promise.all([
@@ -64,6 +71,12 @@ export const useReactionsStore = create<ReactionsState>()((set, get) => ({
   },
 
   addReaction: async (videoId: string, reactionType: ReactionType) => {
+    // Check if user is authenticated first
+    if (!auth.currentUser) {
+      set({ error: 'Not authenticated', isLoading: false });
+      return;
+    }
+
     set({ isLoading: true, error: null });
     try {
       const reaction = await ReactionsAPI.addReaction(videoId, reactionType);
@@ -86,6 +99,12 @@ export const useReactionsStore = create<ReactionsState>()((set, get) => ({
   },
 
   removeReaction: async (videoId: string) => {
+    // Check if user is authenticated first
+    if (!auth.currentUser) {
+      set({ error: 'Not authenticated', isLoading: false });
+      return;
+    }
+
     set({ isLoading: true, error: null });
     try {
       await ReactionsAPI.removeReaction(videoId);
@@ -106,6 +125,12 @@ export const useReactionsStore = create<ReactionsState>()((set, get) => ({
   },
 
   addToTryList: async (videoId: string, notes?: string) => {
+    // Check if user is authenticated first
+    if (!auth.currentUser) {
+      set({ error: 'Not authenticated', isLoading: false });
+      return;
+    }
+
     set({ isLoading: true, error: null });
     try {
       const tryListItem = await ReactionsAPI.addToTryList(videoId, notes);
@@ -128,6 +153,12 @@ export const useReactionsStore = create<ReactionsState>()((set, get) => ({
   },
 
   removeFromTryList: async (videoId: string) => {
+    // Check if user is authenticated first
+    if (!auth.currentUser) {
+      set({ error: 'Not authenticated', isLoading: false });
+      return;
+    }
+
     set({ isLoading: true, error: null });
     try {
       await ReactionsAPI.removeFromTryList(videoId);
