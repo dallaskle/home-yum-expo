@@ -89,12 +89,19 @@ export function ScheduleView() {
       const meals = groupedMeals[section];
       if (!meals || meals.length === 0) return null;
 
+      // Filter past meals to only show ones with ratings
+      const filteredMeals = section === 'Past' 
+        ? meals.filter(meal => !meal.rating)
+        : meals;
+
+      if (filteredMeals.length === 0) return null;
+
       return (
         <View key={section}>
           <Text style={[styles.sectionHeader, { color: Colors[colorScheme ?? 'light'].text }]}>
             {section}
           </Text>
-          {meals.map((meal) => (
+          {filteredMeals.map((meal) => (
             <View 
               key={meal.mealId} 
               style={[
