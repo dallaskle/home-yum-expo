@@ -168,6 +168,20 @@ function RootLayoutNav() {
             options={{
               title: 'Want to try',
               tabBarIcon: ({ color }) => <TabBarIcon name="list" color={color} />,
+              tabBarStyle: {
+                backgroundColor: 'transparent',
+                position: 'absolute',
+                elevation: 10,
+                height: 72,
+                paddingBottom: 20,
+                shadowColor: '#FF6600',
+                shadowOffset: {
+                  width: 0,
+                  height: -4,
+                },
+                shadowOpacity: 0.3,
+                shadowRadius: 4,
+              },
             }}
           />
           <Tabs.Screen

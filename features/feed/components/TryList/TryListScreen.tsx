@@ -275,6 +275,7 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: '#333333',
     paddingTop: 60,
+    paddingBottom: 72,
   },
   pageTitle: {
     fontSize: 28,
