@@ -10,11 +10,12 @@ import { Video } from '@/types/database.types';
 import { UserVideosTab } from './UserVideosTab';
 import { LikedVideosTab } from './LikedVideosTab';
 import { DislikedVideosTab } from './DislikedVideosTab';
+import { RatedVideosTab } from './RatedVideosTab';
 
 const SCREEN_WIDTH = Dimensions.get('window').width;
 const THUMBNAIL_SIZE = SCREEN_WIDTH / 3 - 2; // Account for minimal gap
 
-type TabType = 'videos' | 'likes' | 'dislikes';
+type TabType = 'ratings' | 'videos' | 'likes' | 'dislikes';
 
 export function ProfileScreen() {
   const colorScheme = useColorScheme() ?? 'light';
@@ -38,6 +39,8 @@ export function ProfileScreen() {
 
   const renderTabContent = () => {
     switch (activeTab) {
+      case 'ratings':
+        return <RatedVideosTab />;
       case 'videos':
         return <UserVideosTab videos={userPosts} isLoading={isLoading} />;
       case 'likes':
@@ -84,6 +87,20 @@ export function ProfileScreen() {
 
       {/* Tab Navigation */}
       <View style={styles.tabContainer}>
+        <Pressable
+          style={[
+            styles.tab,
+            activeTab === 'ratings' && styles.activeTab,
+            activeTab === 'ratings' && { borderBottomColor: Colors[colorScheme].accent }
+          ]}
+          onPress={() => setActiveTab('ratings')}
+        >
+          <FontAwesome
+            name="star"
+            size={20}
+            color={activeTab === 'ratings' ? Colors[colorScheme].accent : Colors[colorScheme].text}
+          />
+        </Pressable>
         <Pressable
           style={[
             styles.tab,

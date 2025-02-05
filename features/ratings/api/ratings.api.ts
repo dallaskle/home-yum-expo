@@ -31,7 +31,7 @@ export class RatingsAPI {
 
   static async getUserRatings(): Promise<MealRating[]> {
     const token = await this.getAuthToken();
-    const response = await fetch(`${API_URL}/meals/ratings`, {
+    const response = await fetch(`${API_URL}/meals/ratings?include_video=true`, {
       headers: {
         'Authorization': `Bearer ${token}`,
       },

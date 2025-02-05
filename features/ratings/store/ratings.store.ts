@@ -1,38 +1,72 @@
 import { create } from 'zustand';
 import { MealRating } from '@/types/database.types';
 import { RatingsAPI } from '../api/ratings.api';
+import { API_URLS } from '@/config/urls';
+import { auth } from '@/config/auth';
+
+interface AggregatedRating {
+  videoId: string;
+  averageRating: number;
+  numberOfRatings: number;
+  lastRated: string;
+  comments: string[];
+  video: {
+    mealName: string;
+    mealDescription: string;
+    thumbnailUrl: string;
+  };
+}
 
 interface RatingsState {
   ratings: Record<string, MealRating>;
+  aggregatedRatings: AggregatedRating[];
   isLoading: boolean;
   error: string | null;
   
   initialize: () => Promise<void>;
   rateMeal: (videoId: string, rating: number, mealId?: string, comment?: string) => Promise<void>;
   getRatingForMeal: (videoId: string) => MealRating | null;
+  getAggregatedRatings: () => Promise<void>;
 }
 
 export const useRatingsStore = create<RatingsState>()((set, get) => ({
   ratings: {},
+  aggregatedRatings: [],
   isLoading: false,
   error: null,
 
   initialize: async () => {
     set({ isLoading: true, error: null });
     try {
-      const ratings = await RatingsAPI.getUserRatings();
-      set({
-        ratings: ratings.reduce((acc, rating) => ({
-          ...acc,
-          [rating.videoId]: rating,
-        }), {}),
-        isLoading: false,
-      });
+      await get().getAggregatedRatings();
+      set({ isLoading: false });
     } catch (error) {
       set({
         error: error instanceof Error ? error.message : 'Failed to initialize ratings',
         isLoading: false,
       });
+    }
+  },
+
+  getAggregatedRatings: async () => {
+    try {
+      const response = await fetch(`${API_URLS.api}/meals/ratings/aggregated`, {
+        headers: {
+          'Authorization': `Bearer ${await auth.currentUser?.getIdToken()}`,
+        },
+      });
+
+      if (!response.ok) {
+        throw new Error('Failed to get aggregated ratings');
+      }
+
+      const data = await response.json();
+      set({ aggregatedRatings: data });
+    } catch (error) {
+      set({
+        error: error instanceof Error ? error.message : 'Failed to get aggregated ratings',
+      });
+      throw error;
     }
   },
 
@@ -47,6 +81,8 @@ export const useRatingsStore = create<RatingsState>()((set, get) => ({
         },
         isLoading: false,
       }));
+      // Refresh aggregated ratings after rating a meal
+      await get().getAggregatedRatings();
     } catch (error) {
       set({
         error: error instanceof Error ? error.message : 'Failed to rate meal',
