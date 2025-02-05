@@ -115,28 +115,26 @@ function TryListItem({ videoId, onRemove }: TryListItemProps) {
             {video.mealDescription}
           </Text>
         </View>
-        <View style={styles.buttonContainer}>
-          <TouchableOpacity 
-            style={styles.scheduleButton}
-            onPress={() => setShowSchedule(true)}
-          >
-            <FontAwesome 
-              name="calendar" 
-              size={20} 
-              color={Colors[colorScheme ?? 'light'].text} 
-            />
-          </TouchableOpacity>
-          <TouchableOpacity 
-            style={styles.removeButton}
-            onPress={handleRemovePress}
-          >
-            <FontAwesome 
-              name="times" 
-              size={20} 
-              color={Colors[colorScheme ?? 'light'].text} 
-            />
-          </TouchableOpacity>
-        </View>
+        <TouchableOpacity 
+          style={styles.removeButton}
+          onPress={handleRemovePress}
+        >
+          <FontAwesome 
+            name="times" 
+            size={20} 
+            color={Colors[colorScheme ?? 'light'].text} 
+          />
+        </TouchableOpacity>
+        <TouchableOpacity 
+          style={styles.scheduleButton}
+          onPress={() => setShowSchedule(true)}
+        >
+          <FontAwesome 
+            name="calendar" 
+            size={20} 
+            color={Colors[colorScheme ?? 'light'].text} 
+          />
+        </TouchableOpacity>
       </View>
       <ConfirmModal
         visible={showConfirm}
@@ -312,6 +310,7 @@ const styles = StyleSheet.create({
     marginBottom: 16,
     overflow: 'hidden',
     height: ITEM_HEIGHT,
+    position: 'relative',
   },
   thumbnail: {
     width: ITEM_HEIGHT,
@@ -320,6 +319,7 @@ const styles = StyleSheet.create({
   itemContent: {
     flex: 1,
     padding: 12,
+    paddingRight: 40,
     justifyContent: 'center',
   },
   title: {
@@ -331,18 +331,21 @@ const styles = StyleSheet.create({
     fontSize: 14,
     opacity: 0.8,
   },
-  buttonContainer: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 8,
+  removeButton: {
+    position: 'absolute',
+    top: 8,
+    right: 8,
+    padding: 8,
+    justifyContent: 'center',
+    zIndex: 1,
   },
   scheduleButton: {
-    padding: 12,
+    position: 'absolute',
+    bottom: 8,
+    right: 8,
+    padding: 8,
     justifyContent: 'center',
-  },
-  removeButton: {
-    padding: 12,
-    justifyContent: 'center',
+    zIndex: 1,
   },
   emptyContainer: {
     flex: 1,
