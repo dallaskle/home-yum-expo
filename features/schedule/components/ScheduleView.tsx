@@ -31,13 +31,17 @@ export function ScheduleView() {
   }, []);
 
   const getDateLabel = (dateStr: string): string => {
-    const today = new Date();
+    // Create dates in local timezone
+    const now = new Date();
+    const date = new Date(dateStr + 'T00:00:00'); // Force local timezone by adding time
+    
+    // Reset hours for all date comparisons to ensure consistent day boundaries
+    const today = new Date(now);
     today.setHours(0, 0, 0, 0);
+    const compareDate = new Date(date);
+    compareDate.setHours(0, 0, 0, 0);
     
-    const date = new Date(dateStr);
-    date.setHours(0, 0, 0, 0);
-    
-    const diffDays = Math.floor((date.getTime() - today.getTime()) / (1000 * 60 * 60 * 24));
+    const diffDays = Math.floor((compareDate.getTime() - today.getTime()) / (1000 * 60 * 60 * 24));
     
     if (diffDays < 0) return 'Past';
     if (diffDays === 0) return 'Today';
@@ -61,6 +65,7 @@ export function ScheduleView() {
 
     const grouped: { [key: string]: typeof meals } = {};
     sortedMeals.forEach(meal => {
+      console.log('meal', meal.video?.mealName)
       const label = getDateLabel(meal.mealDate);
       if (!grouped[label]) {
         grouped[label] = [];

@@ -53,12 +53,8 @@ export function ScheduleMealModal({ visible, videoId, onClose }: ScheduleMealMod
   };
 
   const formatDayLabel = (date: Date) => {
-    const dayIndex = date.getDay();
-    if (dayIndex === 0) return 'Sun';
-    if (dayIndex === 6) return 'Sat';
-    
-    const days = ['S', 'M', 'T', 'Th', 'F', 'S', 'S'];
-    return days[dayIndex];
+    const days = ['Sun', 'M', 'T', 'W', 'Th', 'F', 'Sat'];
+    return days[date.getDay()];
   };
 
   const isDateSelected = (date: Date) => {
