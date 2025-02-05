@@ -13,10 +13,8 @@ export function VideoFeed() {
 
   useEffect(() => {
     const initializeData = async () => {
-      await Promise.all([
-        loadFeed(true),
-        initializeReactions(),
-      ]);
+      loadFeed(true)
+      initializeReactions()
     };
 
     initializeData();

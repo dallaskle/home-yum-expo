@@ -16,13 +16,13 @@ interface VideoUpload {
 }
 
 export class FeedAPI {
-  static async getFeed(pageSize: number = 10, lastVideoId?: string): Promise<Video[]> {
+  static async getFeed(pageSize: number = 10, lastVideoId?: string, isInitialLoad: boolean = false): Promise<Video[]> {
     try {
       const idToken = await auth.currentUser?.getIdToken();
       if (!idToken) throw new Error('Not authenticated');
 
       const queryParams = new URLSearchParams({
-        page_size: pageSize.toString(),
+        page_size: isInitialLoad ? '3' : pageSize.toString(),
         ...(lastVideoId && { last_video_id: lastVideoId }),
       });
 
