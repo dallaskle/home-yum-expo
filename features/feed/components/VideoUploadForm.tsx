@@ -7,6 +7,7 @@ import { FeedAPI } from '../api/feed.api';
 import Colors from '@/constants/Colors';
 import { useColorScheme } from '@/components/useColorScheme';
 import { router } from 'expo-router';
+import * as VideoThumbnails from 'expo-video-thumbnails';
 
 export function VideoUploadForm() {
   const colorScheme = useColorScheme();
@@ -20,6 +21,20 @@ export function VideoUploadForm() {
     mealDescription: '',
   });
 
+  const generateThumbnail = async (videoUri: string) => {
+    try {
+      const { uri } = await VideoThumbnails.getThumbnailAsync(videoUri, {
+        time: 0, // Get thumbnail from first frame
+        quality: 0.7,
+      });
+      setThumbnailUri(uri);
+    } catch (error) {
+      console.warn('Error generating thumbnail:', error);
+      // Fallback to using video URI as thumbnail
+      setThumbnailUri(videoUri);
+    }
+  };
+
   const pickVideo = async () => {
     const result = await ImagePicker.launchImageLibraryAsync({
       mediaTypes: ImagePicker.MediaTypeOptions.Videos,
@@ -28,9 +43,9 @@ export function VideoUploadForm() {
     });
 
     if (!result.canceled && result.assets[0]) {
-      setVideoUri(result.assets[0].uri);
-      // Generate thumbnail (in a real app, you'd want to do this server-side)
-      setThumbnailUri(result.assets[0].uri);
+      const videoUri = result.assets[0].uri;
+      setVideoUri(videoUri);
+      await generateThumbnail(videoUri);
     }
   };
 
@@ -84,6 +99,18 @@ export function VideoUploadForm() {
             resizeMode={ResizeMode.COVER}
             shouldPlay={false}
           />
+          {thumbnailUri && (
+            <View style={styles.thumbnailContainer}>
+              <Text style={[styles.thumbnailLabel, { color: Colors[colorScheme ?? 'light'].text }]}>
+                Thumbnail Preview:
+              </Text>
+              <Image
+                source={{ uri: thumbnailUri }}
+                style={styles.thumbnailPreview}
+                resizeMode="cover"
+              />
+            </View>
+          )}
         </View>
       )}
 
@@ -185,5 +212,17 @@ const styles = StyleSheet.create({
   },
   disabledButton: {
     opacity: 0.7,
+  },
+  thumbnailContainer: {
+    marginTop: 10,
+  },
+  thumbnailLabel: {
+    fontSize: 14,
+    marginBottom: 5,
+  },
+  thumbnailPreview: {
+    width: '100%',
+    height: 100,
+    borderRadius: 8,
   },
 }); 
