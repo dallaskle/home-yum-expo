@@ -3,6 +3,7 @@ import { MealRating } from '@/types/database.types';
 import { RatingsAPI } from '../api/ratings.api';
 import { API_URLS } from '@/config/urls';
 import { auth } from '@/config/auth';
+import { useScheduleStore } from '@/features/schedule/store/schedule.store';
 
 interface AggregatedRating {
   videoId: string;
@@ -86,6 +87,8 @@ export const useRatingsStore = create<RatingsState>()((set, get) => ({
     set({ isLoading: true, error: null });
     try {
       const mealRating = await RatingsAPI.rateMeal(videoId, rating, mealId, comment);
+      
+      // Update ratings store
       set(state => ({
         ratings: {
           ...state.ratings,
@@ -93,6 +96,24 @@ export const useRatingsStore = create<RatingsState>()((set, get) => ({
         },
         isLoading: false,
       }));
+
+      // Optimistically update schedule store if mealId is provided
+      if (mealId) {
+        const scheduleStore = useScheduleStore.getState();
+        const scheduledMeal = scheduleStore.getMealById(mealId);
+        if (scheduledMeal) {
+          useScheduleStore.setState({
+            scheduledMeals: {
+              ...scheduleStore.scheduledMeals,
+              [mealId]: {
+                ...scheduledMeal,
+                rating: mealRating,
+              },
+            },
+          });
+        }
+      }
+
       // Refresh aggregated ratings after rating a meal
       await get().getAggregatedRatings();
     } catch (error) {
