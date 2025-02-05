@@ -119,35 +119,40 @@ export function ScheduleView() {
                 <Text style={[styles.mealDescription, { color: Colors[colorScheme ?? 'light'].text }]}>
                   {meal.video?.mealDescription}
                 </Text>
+                <TouchableOpacity
+                  style={styles.rateButton}
+                  onPress={() => setRatingModal({
+                    visible: true,
+                    videoId: meal.videoId,
+                    mealId: meal.mealId,
+                    mealName: meal.video?.mealName || 'Unnamed Meal'
+                  })}
+                >
+                  {meal.rating ? (
+                    <View style={styles.ratingContainer}>
+                      {Array.from({ length: meal.rating.rating }, (_, index) => (
+                        <FontAwesome
+                          key={index}
+                          name="star"
+                          size={16}
+                          color={Colors[colorScheme ?? 'light'].accent}
+                        />
+                      ))}
+                    </View>
+                  ) : section === 'Past' || section === 'Today' ? (
+                    <View style={styles.ratingContainer}>
+                      <FontAwesome
+                        name="star-o"
+                        size={16}
+                        color={Colors[colorScheme ?? 'light'].text}
+                      />
+                      <Text style={[styles.addRatingText, { color: Colors[colorScheme ?? 'light'].text }]}>
+                        Add Rating
+                      </Text>
+                    </View>
+                  ) : null}
+                </TouchableOpacity>
               </View>
-              <TouchableOpacity
-                style={styles.rateButton}
-                onPress={() => setRatingModal({
-                  visible: true,
-                  videoId: meal.videoId,
-                  mealId: meal.mealId,
-                  mealName: meal.video?.mealName || 'Unnamed Meal'
-                })}
-              >
-                {meal.rating ? (
-                  <View style={styles.ratingContainer}>
-                    <FontAwesome
-                      name="star"
-                      size={20}
-                      color={Colors[colorScheme ?? 'light'].accent}
-                    />
-                    <Text style={[styles.ratingText, { color: Colors[colorScheme ?? 'light'].text }]}>
-                      {meal.rating.rating}
-                    </Text>
-                  </View>
-                ) : (
-                  <FontAwesome
-                    name="star-o"
-                    size={20}
-                    color={Colors[colorScheme ?? 'light'].text}
-                  />
-                )}
-              </TouchableOpacity>
             </View>
           ))}
         </View>
@@ -204,7 +209,7 @@ const styles = StyleSheet.create({
   mealContent: {
     flex: 1,
     padding: 12,
-    justifyContent: 'center',
+    justifyContent: 'space-between',
   },
   timeText: {
     fontSize: 14,
@@ -240,8 +245,7 @@ const styles = StyleSheet.create({
     opacity: 0.7,
   },
   rateButton: {
-    padding: 8,
-    alignItems: 'center',
+    marginTop: 8,
   },
   ratingContainer: {
     flexDirection: 'row',
@@ -251,5 +255,10 @@ const styles = StyleSheet.create({
   ratingText: {
     fontSize: 16,
     fontWeight: 'bold',
+  },
+  addRatingText: {
+    fontSize: 14,
+    marginLeft: 4,
+    opacity: 0.7,
   },
 }); 
