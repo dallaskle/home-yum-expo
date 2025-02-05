@@ -1,4 +1,4 @@
-import React, { useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
 import { View, Text, StyleSheet, Pressable, ScrollView, Dimensions, ActivityIndicator, Image as RNImage } from 'react-native';
 import { useAuthStore } from '@/features/auth/store/auth.store';
 import { useProfileStore } from '../store/profile.store';
@@ -7,15 +7,20 @@ import Colors from '@/constants/Colors';
 import { useColorScheme } from '@/components/useColorScheme';
 import { Avatar } from '@rneui/themed';
 import { Video } from '@/types/database.types';
-
+import { UserVideosTab } from './UserVideosTab';
+import { LikedVideosTab } from './LikedVideosTab';
+import { DislikedVideosTab } from './DislikedVideosTab';
 
 const SCREEN_WIDTH = Dimensions.get('window').width;
 const THUMBNAIL_SIZE = SCREEN_WIDTH / 3 - 2; // Account for minimal gap
+
+type TabType = 'videos' | 'likes' | 'dislikes';
 
 export function ProfileScreen() {
   const colorScheme = useColorScheme() ?? 'light';
   const { user } = useAuthStore();
   const { userPosts, isLoading, fetchUserPosts } = useProfileStore();
+  const [activeTab, setActiveTab] = useState<TabType>('videos');
 
   useEffect(() => {
     if (user) {
@@ -30,6 +35,19 @@ export function ProfileScreen() {
   }, [userPosts]);
 
   if (!user) return null;
+
+  const renderTabContent = () => {
+    switch (activeTab) {
+      case 'videos':
+        return <UserVideosTab videos={userPosts} isLoading={isLoading} />;
+      case 'likes':
+        return <LikedVideosTab />;
+      case 'dislikes':
+        return <DislikedVideosTab />;
+      default:
+        return null;
+    }
+  };
 
   return (
     <ScrollView style={styles.container}>
@@ -64,44 +82,54 @@ export function ProfileScreen() {
         </View>
       </View>
 
-      {/* Videos Grid */}
-      {isLoading ? (
-        <View style={styles.loaderContainer}>
-          <ActivityIndicator size="large" color={Colors[colorScheme].accent} />
-        </View>
-      ) : userPosts.length === 0 ? (
-        <View style={styles.emptyContainer}>
-          <FontAwesome name="video-camera" size={48} color={Colors[colorScheme].text} style={styles.emptyIcon} />
-          <Text style={[styles.emptyText, { color: Colors[colorScheme].text }]}>
-            No videos uploaded yet
-          </Text>
-        </View>
-      ) : (
-        <View style={styles.gridContainer}>
-          {userPosts.map((video: Video) => (
-            <Pressable 
-              key={video.videoId}
-              style={styles.thumbnailContainer}
-              onPress={() => {
-                // Logs removed
-              }}
-            >
-              <View style={styles.thumbnailWrapper}>
-                <RNImage
-                  source={{ 
-                    uri: video.thumbnailUrl?.replace(/\?$/, '')
-                  }}
-                  style={[styles.thumbnail, { backgroundColor: '#666' }]}
-                  resizeMode="cover"
-                />
-                <View style={styles.overlay}>
-                  <FontAwesome name="play" size={20} color="white" />
-                </View>
-              </View>
-            </Pressable>
-          ))}
-        </View>
-      )}
+      {/* Tab Navigation */}
+      <View style={styles.tabContainer}>
+        <Pressable
+          style={[
+            styles.tab,
+            activeTab === 'videos' && styles.activeTab,
+            activeTab === 'videos' && { borderBottomColor: Colors[colorScheme].accent }
+          ]}
+          onPress={() => setActiveTab('videos')}
+        >
+          <FontAwesome
+            name="video-camera"
+            size={20}
+            color={activeTab === 'videos' ? Colors[colorScheme].accent : Colors[colorScheme].text}
+          />
+        </Pressable>
+        <Pressable
+          style={[
+            styles.tab,
+            activeTab === 'likes' && styles.activeTab,
+            activeTab === 'likes' && { borderBottomColor: Colors[colorScheme].accent }
+          ]}
+          onPress={() => setActiveTab('likes')}
+        >
+          <FontAwesome
+            name="heart"
+            size={20}
+            color={activeTab === 'likes' ? Colors[colorScheme].accent : Colors[colorScheme].text}
+          />
+        </Pressable>
+        <Pressable
+          style={[
+            styles.tab,
+            activeTab === 'dislikes' && styles.activeTab,
+            activeTab === 'dislikes' && { borderBottomColor: Colors[colorScheme].accent }
+          ]}
+          onPress={() => setActiveTab('dislikes')}
+        >
+          <FontAwesome
+            name="thumbs-down"
+            size={20}
+            color={activeTab === 'dislikes' ? Colors[colorScheme].accent : Colors[colorScheme].text}
+          />
+        </Pressable>
+      </View>
+
+      {/* Tab Content */}
+      {renderTabContent()}
     </ScrollView>
   );
 }
@@ -142,6 +170,21 @@ const styles = StyleSheet.create({
   buttonText: {
     color: 'white',
     fontWeight: '600',
+  },
+  tabContainer: {
+    flexDirection: 'row',
+    borderBottomWidth: 1,
+    borderBottomColor: 'rgba(255, 102, 0, 0.2)',
+  },
+  tab: {
+    flex: 1,
+    alignItems: 'center',
+    paddingVertical: 15,
+    borderBottomWidth: 2,
+    borderBottomColor: 'transparent',
+  },
+  activeTab: {
+    borderBottomWidth: 2,
   },
   loaderContainer: {
     height: 300,
