@@ -1,7 +1,8 @@
 import { Recipe, RecipeItem, Ingredient, Nutrition } from '@/types/database.types';
 import { auth } from '@/config/auth';
+import { API_URLS } from '@/config/urls';
 
-const API_URL = 'https://d74b-24-153-157-38.ngrok-free.app/api';
+const API_URL = API_URLS.api;
 
 interface RecipeData {
   recipe: Recipe | null;

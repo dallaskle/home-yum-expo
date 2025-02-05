@@ -1,8 +1,9 @@
 import { auth } from '@/config/auth';
 import { User } from '@/types/database.types';
 import { getIdToken } from 'firebase/auth';
+import { API_URLS } from '@/config/urls';
 
-const API_URL = 'https://d74b-24-153-157-38.ngrok-free.app';
+const API_URL = API_URLS.base;
 
 export class ProfileAPI {
   static async updateProfile(userData: Partial<User>): Promise<User> {

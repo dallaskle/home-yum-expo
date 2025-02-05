@@ -1,7 +1,8 @@
 import { ReactionType, UserVideoReaction, UserTryList, Video } from '@/types/database.types';
 import { auth } from '@/config/auth';
+import { API_URLS } from '@/config/urls';
 
-const API_URL = 'https://d74b-24-153-157-38.ngrok-free.app';
+const API_URL = API_URLS.base;
 
 export class ReactionsAPI {
   private static async getAuthToken(): Promise<string> {

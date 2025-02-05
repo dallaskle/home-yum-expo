@@ -9,6 +9,7 @@ import { router } from 'expo-router';
 import { auth } from '@/config/auth';
 import { ScheduleView } from '@/features/schedule/components/ScheduleView';
 import { ScheduleMealModal } from '@/features/schedule/components/ScheduleMealModal';
+import { API_URLS } from '@/config/urls';
 
 const { width: SCREEN_WIDTH } = Dimensions.get('window');
 const ITEM_HEIGHT = 120;
@@ -71,7 +72,7 @@ function TryListItem({ videoId, onRemove }: TryListItemProps) {
     // Fetch video details
     const fetchVideo = async () => {
       try {
-        const response = await fetch(`https://d74b-24-153-157-38.ngrok-free.app/api/videos/${videoId}`, {
+        const response = await fetch(`${API_URLS.api}/videos/${videoId}`, {
           headers: {
             'Authorization': `Bearer ${await getAuthToken()}`,
           },
