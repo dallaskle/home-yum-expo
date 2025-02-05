@@ -19,17 +19,13 @@ export function ProfileScreen() {
 
   useEffect(() => {
     if (user) {
-      console.log('Fetching posts for user:', user.userId);
       fetchUserPosts(user.userId);
     }
   }, [user]);
 
   useEffect(() => {
     if (userPosts.length > 0) {
-      console.log('User posts with thumbnails:', userPosts.map(post => ({
-        videoId: post.videoId,
-        thumbnailUrl: post.thumbnailUrl
-      })));
+      // Logs removed
     }
   }, [userPosts]);
 
@@ -87,7 +83,7 @@ export function ProfileScreen() {
               key={video.videoId}
               style={styles.thumbnailContainer}
               onPress={() => {
-                console.log('Video pressed:', video.videoId);
+                // Logs removed
               }}
             >
               <View style={styles.thumbnailWrapper}>
