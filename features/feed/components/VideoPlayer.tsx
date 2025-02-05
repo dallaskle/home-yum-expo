@@ -7,6 +7,8 @@ import { useColorScheme } from '@/components/useColorScheme';
 import { BlurView } from 'expo-blur';
 import Animated, { useAnimatedStyle, withTiming } from 'react-native-reanimated';
 import { VideoReactions } from './VideoReactions';
+import { RecipeDetailsModal } from '@/features/meal/components/RecipeDetailsModal';
+import { FontAwesome } from '@expo/vector-icons';
 
 const { width: SCREEN_WIDTH, height: SCREEN_HEIGHT } = Dimensions.get('window');
 
@@ -24,6 +26,7 @@ export function VideoPlayer({ video, isActive, onEnd }: VideoPlayerProps) {
   const [position, setPosition] = useState(0);
   const [showControls, setShowControls] = useState(false);
   const [isPlaying, setIsPlaying] = useState(true);
+  const [showRecipeDetails, setShowRecipeDetails] = useState(false);
 
   useEffect(() => {
     if (!videoRef.current || !backgroundVideoRef.current) return;
@@ -85,7 +88,6 @@ export function VideoPlayer({ video, isActive, onEnd }: VideoPlayerProps) {
 
   return (
     <View style={styles.container}>
-
       <View style={styles.videoContainer}>
         <TouchableOpacity
           style={styles.videoWrapper}
@@ -132,12 +134,26 @@ export function VideoPlayer({ video, isActive, onEnd }: VideoPlayerProps) {
       {/* Video Info Overlay */}
       <View style={styles.overlay}>
         <View style={styles.textContainer}>
-          <Text style={[styles.title, { color: '#FFFFFF' }]}>
-            {video.videoTitle}
-          </Text>
-          <Text style={[styles.description, { color: '#FFFFFF' }]}>
-            {video.mealName} | {video.mealDescription}
-          </Text>
+          <View style={styles.titleRow}>
+            <TouchableOpacity
+              style={styles.menuButton}
+              onPress={() => setShowRecipeDetails(true)}
+            >
+              <FontAwesome 
+                name="ellipsis-v" 
+                size={20} 
+                color="#FFFFFF" 
+              />
+            </TouchableOpacity>
+            <View style={styles.titleContent}>
+              <Text style={[styles.title, { color: '#FFFFFF' }]}>
+                {video.videoTitle}
+              </Text>
+              <Text style={[styles.description, { color: '#FFFFFF' }]}>
+                {video.mealName} | {video.mealDescription}
+              </Text>
+            </View>
+          </View>
         </View>
       </View>
 
@@ -147,6 +163,13 @@ export function VideoPlayer({ video, isActive, onEnd }: VideoPlayerProps) {
         initialReaction={video.userReaction} 
         initialTryListItem={video.tryListItem}
       />}
+
+      {/* Recipe Details Modal */}
+      <RecipeDetailsModal
+        visible={showRecipeDetails}
+        videoId={video.videoId}
+        onClose={() => setShowRecipeDetails(false)}
+      />
     </View>
   );
 }
@@ -216,6 +239,17 @@ const styles = StyleSheet.create({
     paddingHorizontal: 20,
     paddingTop: 20,
     paddingBottom: 5,
+  },
+  titleRow: {
+    flexDirection: 'row',
+    alignItems: 'flex-start',
+  },
+  menuButton: {
+    padding: 8,
+    marginRight: 8,
+  },
+  titleContent: {
+    flex: 1,
   },
   title: {
     fontSize: 16,
