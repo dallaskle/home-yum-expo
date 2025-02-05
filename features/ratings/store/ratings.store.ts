@@ -86,6 +86,35 @@ export const useRatingsStore = create<RatingsState>()((set, get) => ({
   rateMeal: async (videoId: string, rating: number, mealId?: string, comment?: string) => {
     set({ isLoading: true, error: null });
     try {
+
+      const optimisticRating: MealRating = {
+        ratingId: 'temp_' + Date.now(),  // Temporary ID until server response
+        userId: auth.currentUser?.uid || '',
+        videoId,
+        mealId: mealId || '',
+        rating,
+        comment,
+        createdAt: new Date().toISOString(),
+        updatedAt: new Date().toISOString()
+      };
+
+      // Optimistically update schedule store if mealId is provided
+      if (mealId) {
+        const scheduleStore = useScheduleStore.getState();
+        const scheduledMeal = scheduleStore.getMealById(mealId);
+        if (scheduledMeal) {
+          useScheduleStore.setState({
+            scheduledMeals: {
+              ...scheduleStore.scheduledMeals,
+              [mealId]: {
+                ...scheduledMeal,
+                rating: optimisticRating,
+              },
+            },
+          });
+        }
+      }
+
       const mealRating = await RatingsAPI.rateMeal(videoId, rating, mealId, comment);
       
       // Update ratings store
