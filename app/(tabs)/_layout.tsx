@@ -55,37 +55,7 @@ export default function RootLayout() {
 
 function RootLayoutNav() {
   const colorScheme = useColorScheme();
-  const { user, isLoading, isInitialized, initialize } = useAuthStore();
-  const { initialize: initializeReactions } = useReactionsStore();
-
-  // Handle auth initialization
-  useEffect(() => {
-    let unsubscribe: (() => void) | undefined;
-    let isSubscribed = true;
-    
-    const init = async () => {
-      try {
-        if (isSubscribed) {
-          unsubscribe = await initialize();
-          // Initialize reactions after auth is initialized and we have a user
-          if (user) {
-            await initializeReactions();
-          }
-        }
-      } catch (error) {
-        console.error('Failed to initialize:', error);
-      }
-    };
-    
-    init();
-
-    return () => {
-      isSubscribed = false;
-      if (unsubscribe) {
-        unsubscribe();
-      }
-    };
-  }, [user]);
+  const { user, isLoading, isInitialized } = useAuthStore();
 
   // Handle navigation based on auth state
   useEffect(() => {

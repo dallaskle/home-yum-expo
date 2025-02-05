@@ -22,9 +22,7 @@ export default function Login() {
   const handleLogin = async () => {
     try {
       await login('dallas.klein@gauntletai.com', 'password');
-      router.replace('/(tabs)');
     } catch (err) {
-      // Error is handled by the store
       console.error('Login failed:', err);
     }
   };

@@ -4,10 +4,12 @@ import { useFonts } from 'expo-font';
 import { Stack } from 'expo-router';
 import * as SplashScreen from 'expo-splash-screen';
 import { useEffect } from 'react';
+import { View, ActivityIndicator } from 'react-native';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
 
 import { useColorScheme } from '@/components/useColorScheme';
 import Colors from '@/constants/Colors';
+import { useAuthStore } from '@/features/auth/store/auth.store';
 
 export {
   // Catch any errors thrown by the Layout component.
@@ -48,6 +50,12 @@ export default function RootLayout() {
 
 function RootLayoutNav() {
   const colorScheme = useColorScheme();
+  const { isLoading, isInitialized, initialize } = useAuthStore();
+
+  // Always call useEffect
+  useEffect(() => {
+    initialize();
+  }, []);
 
   const customTheme = {
     ...(colorScheme === 'dark' ? DarkTheme : DefaultTheme),
@@ -55,21 +63,40 @@ function RootLayoutNav() {
       ...(colorScheme === 'dark' ? DarkTheme.colors : DefaultTheme.colors),
       primary: Colors[colorScheme ?? 'light'].accent,
       background: Colors[colorScheme ?? 'light'].background,
-      text: '#FFFFFF',
+      text: Colors[colorScheme ?? 'light'].text,
       border: Colors[colorScheme ?? 'light'].border,
-      card: '#000000',
-      notification: Colors[colorScheme ?? 'light'].accent,
+      card: Colors[colorScheme ?? 'light'].background,
     },
   };
 
+  // Instead of conditional rendering, render both states but use opacity/display
   return (
     <GestureHandlerRootView style={{ flex: 1 }}>
       <ThemeProvider value={customTheme}>
-        <Stack>
-          <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
-          <Stack.Screen name="modal" options={{ presentation: 'modal' }} />
-          <Stack.Screen name="(auth)" options={{ headerShown: false }} />
-        </Stack>
+        {/* Loading State */}
+        <View 
+          style={[
+            { 
+              position: 'absolute',
+              width: '100%',
+              height: '100%',
+              justifyContent: 'center',
+              alignItems: 'center',
+              backgroundColor: Colors[colorScheme ?? 'light'].background,
+            },
+            { display: (isLoading || !isInitialized) ? 'flex' : 'none' }
+          ]}
+        >
+          <ActivityIndicator size="large" color={Colors[colorScheme ?? 'light'].accent} />
+        </View>
+
+        {/* Main Navigation */}
+        <View style={{ flex: 1, opacity: (isLoading || !isInitialized) ? 0 : 1 }}>
+          <Stack>
+            <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
+            <Stack.Screen name="(auth)" options={{ headerShown: false }} />
+          </Stack>
+        </View>
       </ThemeProvider>
     </GestureHandlerRootView>
   );

@@ -1,205 +1,98 @@
 import { create } from 'zustand';
-import { User as FirebaseUser } from 'firebase/auth';
-import { authService, AuthResponse } from '../service/auth.service';
-import { auth } from '@/config/auth';
-import { onAuthStateChanged, Unsubscribe } from 'firebase/auth';
 import { User } from '@/types/database.types';
 import { UserAPI } from '../api/user.api';
+import { router } from 'expo-router';
 
 interface AuthState {
-  firebaseUser: FirebaseUser | null;
   user: User | null;
   isLoading: boolean;
   error: string | null;
   isInitialized: boolean;
-  isSigningUp: boolean;
+  
+  initialize: () => Promise<void>;
   login: (email: string, password: string) => Promise<void>;
   signup: (email: string, password: string) => Promise<void>;
   logout: () => Promise<void>;
-  initialize: () => Promise<Unsubscribe>;
-  setUser: (user: User | null) => void;
   updateUser: (userData: Partial<User>) => Promise<void>;
 }
 
-interface AuthStateUpdate {
-  firebaseUser?: FirebaseUser | null;
-  user?: User | null;
-  error?: string | null;
-  isLoading?: boolean;
-  isInitialized?: boolean;
-  isSigningUp?: boolean;
-}
+export const useAuthStore = create<AuthState>()((set, get) => ({
+  user: null,
+  isLoading: true,
+  error: null,
+  isInitialized: false,
 
-export const useAuthStore = create<AuthState>()((set, get) => {
-  const updateState = (updates: AuthStateUpdate) => {
-    set((state) => ({ ...state, ...updates }));
-  };
-
-  return {
-    firebaseUser: null,
-    user: null,
-    isLoading: false,
-    error: null,
-    isInitialized: false,
-    isSigningUp: false,
-
-    setUser: (user: User | null) => {
-      updateState({ user });
-    },
-
-    updateUser: async (userData: Partial<User>) => {
-      try {
-        updateState({ isLoading: true, error: null });
-        await UserAPI.updateUser(userData);
-        const updatedUser = await UserAPI.getUser();
-        updateState({ user: updatedUser, isLoading: false });
-      } catch (error) {
-        updateState({
-          error: error instanceof Error ? error.message : 'Failed to update user',
-          isLoading: false,
-        });
-        throw error;
+  initialize: async () => {
+    try {
+      set({ isLoading: true, error: null });
+      const user = await UserAPI.getUser();
+      console.log('auth.store: user', user);
+      set({ user, isInitialized: true, error: null });
+      if (user) {
+        router.replace('/(tabs)');
+      } else {
+        router.replace('/login');
       }
-    },
+    } catch (error) {
+      set({ user: null, error: null });
+      router.replace('/login');
+    } finally {
+      set({ isLoading: false, isInitialized: true });
+    }
+  },
 
-    initialize: async () => {
-      if (get().isInitialized) {
-        return () => {};
-      }
-      
-      updateState({ isLoading: true });
-      
-      try {
-        const storedAuth = await authService.getStoredAuth();
-        if (storedAuth) {
-          updateState({
-            firebaseUser: storedAuth.firebaseUser,
-            user: storedAuth.user,
-            error: null,
-          });
-        }
-      } catch (error) {
-        console.error('Error checking stored auth:', error);
-      }
+  login: async (email: string, password: string) => {
+    try {
+      set({ isLoading: true, error: null });
+      const user = await UserAPI.login(email, password);
+      set({ user, error: null });
+      router.replace('/(tabs)');
+    } catch (error) {
+      set({ error: error instanceof Error ? error.message : 'Failed to login' });
+      throw error;
+    } finally {
+      set({ isLoading: false });
+    }
+  },
 
-      const unsubscribe = onAuthStateChanged(auth, async (firebaseUser) => {
-        if (firebaseUser) {
-          try {
-            const currentState = get();
-            if (currentState.isSigningUp || currentState.firebaseUser?.uid === firebaseUser.uid) {
-              return;
-            }
+  signup: async (email: string, password: string) => {
+    try {
+      set({ isLoading: true, error: null });
+      const user = await UserAPI.signup(email, password);
+      set({ user, error: null });
+      router.replace('/(tabs)');
+    } catch (error) {
+      set({ error: error instanceof Error ? error.message : 'Failed to signup' });
+      throw error;
+    } finally {
+      set({ isLoading: false });
+    }
+  },
 
-            try {
-              const user = await UserAPI.getUser();
-              await authService.saveAuthData(firebaseUser, user);
-              updateState({
-                firebaseUser,
-                user,
-                error: null,
-              });
-            } catch (error) {
-              if (!currentState.isSigningUp) {
-                await authService.clearAuthData();
-                updateState({
-                  firebaseUser: null,
-                  user: null,
-                  error: 'User profile not found',
-                });
-              }
-            }
-          } catch (error) {
-            console.error('Error in auth state change:', error);
-            if (!get().isSigningUp) {
-              updateState({
-                error: 'Failed to fetch user data',
-                isLoading: false,
-              });
-            }
-          }
-        } else {
-          const currentState = get();
-          if (currentState.firebaseUser && !currentState.isSigningUp) {
-            await authService.clearAuthData();
-            updateState({
-              firebaseUser: null,
-              user: null,
-              error: null,
-            });
-          }
-        }
-      });
+  logout: async () => {
+    try {
+      set({ isLoading: true, error: null });
+      await UserAPI.logout();
+      set({ user: null, error: null });
+      router.replace('/login');
+    } catch (error) {
+      set({ error: error instanceof Error ? error.message : 'Failed to logout' });
+      throw error;
+    } finally {
+      set({ isLoading: false });
+    }
+  },
 
-      updateState({ isInitialized: true, isLoading: false });
-      return unsubscribe;
-    },
-
-    login: async (email: string, password: string) => {
-      try {
-        updateState({ isLoading: true, error: null });
-        const response = await authService.login(email, password);
-        updateState({
-          firebaseUser: response.firebaseUser,
-          user: response.user,
-          error: null,
-          isLoading: false,
-        });
-      } catch (error) {
-        updateState({
-          error: error instanceof Error ? error.message : 'Failed to login',
-          isLoading: false,
-        });
-        throw error;
-      }
-    },
-
-    signup: async (email: string, password: string) => {
-      try {
-        updateState({ isLoading: true, error: null, isSigningUp: true });
-        
-        const response = await authService.signup(email, password);
-        
-        try {
-          const user = await UserAPI.createUser();
-          
-          updateState({
-            firebaseUser: response.firebaseUser,
-            user,
-            error: null,
-            isLoading: false,
-            isSigningUp: false,
-          });
-        } catch (error) {
-          await authService.logout();
-          throw new Error('Failed to create user profile');
-        }
-      } catch (error) {
-        updateState({
-          error: error instanceof Error ? error.message : 'Failed to signup',
-          isLoading: false,
-          isSigningUp: false,
-        });
-        throw error;
-      }
-    },
-
-    logout: async () => {
-      try {
-        updateState({ isLoading: true, error: null });
-        await authService.logout();
-        updateState({
-          firebaseUser: null,
-          user: null,
-          error: null,
-          isLoading: false,
-        });
-      } catch (error) {
-        updateState({
-          error: error instanceof Error ? error.message : 'Failed to logout',
-          isLoading: false,
-        });
-        throw error;
-      }
-    },
-  };
-});
+  updateUser: async (userData: Partial<User>) => {
+    try {
+      set({ isLoading: true, error: null });
+      const updatedUser = await UserAPI.updateUser(userData);
+      set({ user: updatedUser, error: null });
+    } catch (error) {
+      set({ error: error instanceof Error ? error.message : 'Failed to update user' });
+      throw error;
+    } finally {
+      set({ isLoading: false });
+    }
+  },
+}));
