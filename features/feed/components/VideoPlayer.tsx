@@ -6,6 +6,7 @@ import Colors from '@/constants/Colors';
 import { useColorScheme } from '@/components/useColorScheme';
 import { BlurView } from 'expo-blur';
 import Animated, { useAnimatedStyle, withTiming } from 'react-native-reanimated';
+import { VideoReactions } from './VideoReactions';
 
 const { width: SCREEN_WIDTH, height: SCREEN_HEIGHT } = Dimensions.get('window');
 
@@ -139,6 +140,9 @@ export function VideoPlayer({ video, isActive, onEnd }: VideoPlayerProps) {
           </Text>
         </View>
       </View>
+
+      {/* Video Reactions */}
+      {isActive && <VideoReactions videoId={video.videoId} />}
     </View>
   );
 }

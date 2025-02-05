@@ -2,15 +2,24 @@ import React, { useEffect, useRef } from 'react';
 import { StyleSheet, View, Dimensions, FlatList, ViewToken } from 'react-native';
 import { VideoPlayer } from './VideoPlayer';
 import { useFeedStore } from '../store/feed.store';
+import { useReactionsStore } from '../store/reactions.store';
 
 const { height: SCREEN_HEIGHT } = Dimensions.get('window');
 
 export function VideoFeed() {
   const { videos, currentVideoIndex, loadFeed, setCurrentVideoIndex } = useFeedStore();
+  const { initialize: initializeReactions } = useReactionsStore();
   const flatListRef = useRef<FlatList>(null);
 
   useEffect(() => {
-    loadFeed(true);
+    const initializeData = async () => {
+      await Promise.all([
+        loadFeed(true),
+        initializeReactions(),
+      ]);
+    };
+
+    initializeData();
   }, []);
 
   const onViewableItemsChanged = React.useCallback(({ changed }: { changed: ViewToken[] }) => {
