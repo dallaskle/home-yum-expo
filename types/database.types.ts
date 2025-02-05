@@ -61,6 +61,7 @@ export interface User {
     createdAt: Date;
     updatedAt: Date;
     video?: VideoDetails; // Optional video details included when fetching meals
+    rating?: MealRating;
   }
   
   /**

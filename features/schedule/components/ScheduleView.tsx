@@ -102,42 +102,22 @@ export function ScheduleView() {
                 section === 'Past' && styles.pastMealItem
               ]}
             >
-              {meal.video?.thumbnailUrl && (
-                <Image 
-                  source={{ uri: meal.video.thumbnailUrl }}
-                  style={[
-                    styles.thumbnail,
-                    section === 'Past' && styles.pastThumbnail
-                  ]}
-                />
-              )}
+              <Image
+                source={{ uri: meal.video?.thumbnailUrl }}
+                style={[
+                  styles.thumbnail,
+                  section === 'Past' && styles.pastThumbnail
+                ]}
+              />
               <View style={styles.mealContent}>
-                <Text 
-                  style={[
-                    styles.timeText, 
-                    { color: Colors[colorScheme ?? 'light'].text },
-                    section === 'Past' && styles.pastText
-                  ]}
-                >
-                  {getMealPeriod(meal.mealTime)}
+                <Text style={[styles.timeText, { color: Colors[colorScheme ?? 'light'].text }]}>
+                  {getMealPeriod(meal.mealTime)} • {meal.mealTime}
                 </Text>
-                <Text 
-                  style={[
-                    styles.mealTitle, 
-                    { color: Colors[colorScheme ?? 'light'].text },
-                    section === 'Past' && styles.pastText
-                  ]}
-                >
-                  {meal.video?.mealName || 'Unnamed Meal'}
+                <Text style={[styles.mealTitle, { color: Colors[colorScheme ?? 'light'].text }]}>
+                  {meal.video?.mealName}
                 </Text>
-                <Text 
-                  style={[
-                    styles.mealDescription, 
-                    { color: Colors[colorScheme ?? 'light'].text },
-                    section === 'Past' && styles.pastText
-                  ]}
-                >
-                  {meal.video?.mealDescription || ''}
+                <Text style={[styles.mealDescription, { color: Colors[colorScheme ?? 'light'].text }]}>
+                  {meal.video?.mealDescription}
                 </Text>
               </View>
               <TouchableOpacity
@@ -149,11 +129,24 @@ export function ScheduleView() {
                   mealName: meal.video?.mealName || 'Unnamed Meal'
                 })}
               >
-                <FontAwesome
-                  name={getRatingForMeal(meal.videoId) ? 'star' : 'star-o'}
-                  size={20}
-                  color={Colors[colorScheme ?? 'light'].accent}
-                />
+                {meal.rating ? (
+                  <View style={styles.ratingContainer}>
+                    <FontAwesome
+                      name="star"
+                      size={20}
+                      color={Colors[colorScheme ?? 'light'].accent}
+                    />
+                    <Text style={[styles.ratingText, { color: Colors[colorScheme ?? 'light'].text }]}>
+                      {meal.rating.rating}
+                    </Text>
+                  </View>
+                ) : (
+                  <FontAwesome
+                    name="star-o"
+                    size={20}
+                    color={Colors[colorScheme ?? 'light'].text}
+                  />
+                )}
               </TouchableOpacity>
             </View>
           ))}
@@ -249,5 +242,14 @@ const styles = StyleSheet.create({
   rateButton: {
     padding: 8,
     alignItems: 'center',
+  },
+  ratingContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 4,
+  },
+  ratingText: {
+    fontSize: 16,
+    fontWeight: 'bold',
   },
 }); 
