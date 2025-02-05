@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { StyleSheet, View, Text, Modal, TouchableOpacity, TextInput } from 'react-native';
+import { StyleSheet, View, Text, Modal, TouchableOpacity } from 'react-native';
 import Colors from '@/constants/Colors';
 import { useColorScheme } from '@/components/useColorScheme';
 import { useScheduleStore } from '../store/schedule.store';
@@ -10,11 +10,19 @@ interface ScheduleMealModalProps {
   onClose: () => void;
 }
 
+const MEAL_PERIODS = {
+  Breakfast: '08:00',
+  Lunch: '12:00',
+  Dinner: '18:00'
+} as const;
+
+type MealPeriod = keyof typeof MEAL_PERIODS;
+
 export function ScheduleMealModal({ visible, videoId, onClose }: ScheduleMealModalProps) {
   const colorScheme = useColorScheme();
   const { scheduleMeal } = useScheduleStore();
   const [selectedDay, setSelectedDay] = useState(0);
-  const [time, setTime] = useState('12:00');
+  const [selectedMealPeriod, setSelectedMealPeriod] = useState<MealPeriod>('Dinner');
 
   const days = ['Today', 'Tomorrow', 'Day After'];
 
@@ -26,7 +34,7 @@ export function ScheduleMealModal({ visible, videoId, onClose }: ScheduleMealMod
 
   const handleSchedule = async () => {
     try {
-      await scheduleMeal(videoId, getDateString(selectedDay), time);
+      await scheduleMeal(videoId, getDateString(selectedDay), MEAL_PERIODS[selectedMealPeriod]);
       onClose();
     } catch (error) {
       console.error('Failed to schedule meal:', error);
@@ -67,16 +75,27 @@ export function ScheduleMealModal({ visible, videoId, onClose }: ScheduleMealMod
 
           <View style={styles.timeContainer}>
             <Text style={[styles.label, { color: Colors[colorScheme ?? 'light'].text }]}>
-              Time
+              Meal Time
             </Text>
-            <TextInput
-              style={[styles.timeInput, { color: Colors[colorScheme ?? 'light'].text }]}
-              value={time}
-              onChangeText={setTime}
-              placeholder="HH:MM"
-              placeholderTextColor="rgba(255, 255, 255, 0.5)"
-              keyboardType="numbers-and-punctuation"
-            />
+            <View style={[styles.mealPeriodSelector, styles.daySelector]}>
+              {(Object.keys(MEAL_PERIODS) as MealPeriod[]).map((period) => (
+                <TouchableOpacity
+                  key={period}
+                  style={[
+                    styles.dayButton,
+                    selectedMealPeriod === period && styles.selectedDay
+                  ]}
+                  onPress={() => setSelectedMealPeriod(period)}
+                >
+                  <Text style={[
+                    styles.dayText,
+                    selectedMealPeriod === period && styles.selectedDayText
+                  ]}>
+                    {period}
+                  </Text>
+                </TouchableOpacity>
+              ))}
+            </View>
           </View>
 
           <View style={styles.buttonContainer}>
@@ -153,11 +172,28 @@ const styles = StyleSheet.create({
     fontSize: 16,
     marginBottom: 8,
   },
-  timeInput: {
-    backgroundColor: 'rgba(255, 255, 255, 0.1)',
+  mealPeriodSelector: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+  },
+  mealPeriodButton: {
+    flex: 1,
+    paddingVertical: 12,
     borderRadius: 8,
-    padding: 12,
-    fontSize: 16,
+    backgroundColor: 'rgba(255, 255, 255, 0.1)',
+    alignItems: 'center',
+  },
+  selectedMealPeriod: {
+    backgroundColor: Colors.light.accent,
+  },
+  mealPeriodText: {
+    color: '#FFFFFF',
+    fontSize: 14,
+    fontWeight: '500',
+    opacity: 0.7,
+  },
+  selectedMealPeriodText: {
+    opacity: 1,
   },
   buttonContainer: {
     flexDirection: 'row',

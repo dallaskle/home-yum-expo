@@ -4,6 +4,14 @@ import { useScheduleStore } from '../store/schedule.store';
 import Colors from '@/constants/Colors';
 import { useColorScheme } from '@/components/useColorScheme';
 
+const getMealPeriod = (time: string): string => {
+  const hour = parseInt(time.split(':')[0], 10);
+  
+  if (hour < 11) return 'Breakfast';
+  if (hour < 16) return 'Lunch';
+  return 'Dinner';
+};
+
 export function ScheduleView() {
   const colorScheme = useColorScheme();
   const { scheduledMeals, initialize } = useScheduleStore();
@@ -21,6 +29,7 @@ export function ScheduleView() {
     
     const diffDays = Math.floor((date.getTime() - today.getTime()) / (1000 * 60 * 60 * 24));
     
+    if (diffDays < 0) return 'Past';
     if (diffDays === 0) return 'Today';
     if (diffDays === 1) return 'Tomorrow';
     
@@ -54,7 +63,7 @@ export function ScheduleView() {
 
   const renderMealGroups = () => {
     const groupedMeals = groupMealsByDate();
-    const sections = ['Today', 'Tomorrow', 'This Week', 'Next Week', 'Next Month'];
+    const sections = ['Past', 'Today', 'Tomorrow', 'This Week', 'Next Week', 'Next Month'];
 
     if (Object.keys(groupedMeals).length === 0) {
       return (
@@ -76,21 +85,48 @@ export function ScheduleView() {
             {section}
           </Text>
           {meals.map((meal) => (
-            <View key={meal.mealId} style={styles.mealItem}>
+            <View 
+              key={meal.mealId} 
+              style={[
+                styles.mealItem,
+                section === 'Past' && styles.pastMealItem
+              ]}
+            >
               {meal.video?.thumbnailUrl && (
                 <Image 
                   source={{ uri: meal.video.thumbnailUrl }}
-                  style={styles.thumbnail}
+                  style={[
+                    styles.thumbnail,
+                    section === 'Past' && styles.pastThumbnail
+                  ]}
                 />
               )}
               <View style={styles.mealContent}>
-                <Text style={[styles.timeText, { color: Colors[colorScheme ?? 'light'].text }]}>
-                  {meal.mealTime}
+                <Text 
+                  style={[
+                    styles.timeText, 
+                    { color: Colors[colorScheme ?? 'light'].text },
+                    section === 'Past' && styles.pastText
+                  ]}
+                >
+                  {getMealPeriod(meal.mealTime)}
                 </Text>
-                <Text style={[styles.mealTitle, { color: Colors[colorScheme ?? 'light'].text }]}>
+                <Text 
+                  style={[
+                    styles.mealTitle, 
+                    { color: Colors[colorScheme ?? 'light'].text },
+                    section === 'Past' && styles.pastText
+                  ]}
+                >
                   {meal.video?.mealName || 'Unnamed Meal'}
                 </Text>
-                <Text style={[styles.mealDescription, { color: Colors[colorScheme ?? 'light'].text }]}>
+                <Text 
+                  style={[
+                    styles.mealDescription, 
+                    { color: Colors[colorScheme ?? 'light'].text },
+                    section === 'Past' && styles.pastText
+                  ]}
+                >
                   {meal.video?.mealDescription || ''}
                 </Text>
               </View>
@@ -161,6 +197,16 @@ const styles = StyleSheet.create({
   emptyText: {
     fontSize: 16,
     textAlign: 'center',
+    opacity: 0.7,
+  },
+  pastMealItem: {
+    opacity: 0.7,
+    backgroundColor: 'rgba(255, 255, 255, 0.05)',
+  },
+  pastThumbnail: {
+    opacity: 0.5,
+  },
+  pastText: {
     opacity: 0.7,
   },
 }); 
