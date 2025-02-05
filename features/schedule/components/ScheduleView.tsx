@@ -118,7 +118,7 @@ export function ScheduleView() {
               />
               <View style={styles.mealContent}>
                 <Text style={[styles.timeText, { color: Colors[colorScheme ?? 'light'].text }]}>
-                  {getMealPeriod(meal.mealTime)} • {meal.mealTime}
+                  {getMealPeriod(meal.mealTime)}
                 </Text>
                 <Text style={[styles.mealTitle, { color: Colors[colorScheme ?? 'light'].text }]}>
                   {meal.video?.mealName}

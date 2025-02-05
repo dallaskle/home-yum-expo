@@ -10,11 +10,12 @@ import { auth } from '@/config/auth';
 import { ScheduleView } from '@/features/schedule/components/ScheduleView';
 import { ScheduleMealModal } from '@/features/schedule/components/ScheduleMealModal';
 import { API_URLS } from '@/config/urls';
+import { TriedView } from '@/features/schedule/components/TriedView';
 
 const { width: SCREEN_WIDTH } = Dimensions.get('window');
 const ITEM_HEIGHT = 120;
 
-type ViewMode = 'list' | 'schedule';
+type ViewMode = 'list' | 'schedule' | 'tried';
 
 interface TryListItemProps {
   videoId: string;
@@ -226,10 +227,24 @@ export function TryListScreen() {
           Schedule
         </Text>
       </TouchableOpacity>
+      <TouchableOpacity
+        style={[
+          styles.toggleButton,
+          viewMode === 'tried' && styles.toggleButtonActive
+        ]}
+        onPress={() => setViewMode('tried')}
+      >
+        <Text style={[
+          styles.toggleText,
+          viewMode === 'tried' && styles.toggleTextActive
+        ]}>
+          Tried
+        </Text>
+      </TouchableOpacity>
     </View>
   );
 
-  if (displayItems.length === 0) {
+  if (displayItems.length === 0 && viewMode === 'list') {
     return (
       <View style={styles.emptyContainer}>
         <Text style={[styles.emptyText, { color: Colors[colorScheme ?? 'light'].text }]}>
@@ -264,8 +279,10 @@ export function TryListScreen() {
           contentContainerStyle={styles.listContent}
           showsVerticalScrollIndicator={false}
         />
-      ) : (
+      ) : viewMode === 'schedule' ? (
         <ScheduleView />
+      ) : (
+        <TriedView />
       )}
     </View>
   );
