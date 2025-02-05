@@ -30,7 +30,6 @@ export default function Signup() {
     
     try {
       await signup(email, password);
-      router.replace('/(tabs)');
     } catch (err) {
       // Error is handled by the store
       console.error('Signup failed:', err);

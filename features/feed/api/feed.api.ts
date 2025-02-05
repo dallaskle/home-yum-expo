@@ -1,8 +1,9 @@
 import { Video } from '@/types/database.types';
 import { auth } from '@/config/auth';
 import { getIdToken } from 'firebase/auth';
+import { API_URLS } from '@/config/urls';
 
-const API_URL = process.env.EXPO_PUBLIC_API_URL || 'http://localhost:8001';
+const API_URL = API_URLS.base;
 
 interface VideoUpload {
   videoTitle: string;
@@ -15,13 +16,13 @@ interface VideoUpload {
 }
 
 export class FeedAPI {
-  static async getFeed(pageSize: number = 10, lastVideoId?: string): Promise<Video[]> {
+  static async getFeed(pageSize: number = 10, lastVideoId?: string, isInitialLoad: boolean = false): Promise<Video[]> {
     try {
       const idToken = await auth.currentUser?.getIdToken();
       if (!idToken) throw new Error('Not authenticated');
 
       const queryParams = new URLSearchParams({
-        page_size: pageSize.toString(),
+        page_size: isInitialLoad ? '3' : pageSize.toString(),
         ...(lastVideoId && { last_video_id: lastVideoId }),
       });
 
@@ -36,7 +37,19 @@ export class FeedAPI {
         throw new Error('Failed to fetch video feed');
       }
 
-      return await response.json();
+      const videos = await response.json();
+      return videos.map((video: any) => ({
+        ...video,
+        uploadedAt: new Date(video.uploadedAt),
+        userReaction: video.userReaction ? {
+          ...video.userReaction,
+          reactionDate: new Date(video.userReaction.reactionDate)
+        } : null,
+        tryListItem: video.tryListItem ? {
+          ...video.tryListItem,
+          addedDate: new Date(video.tryListItem.addedDate)
+        } : null
+      }));
     } catch (error) {
       console.error('Error fetching feed:', error);
       throw error;

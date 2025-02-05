@@ -34,7 +34,6 @@ export const useProfileStore = create<ProfileState>()((set) => ({
       set({ isLoading: true, error: null });
       console.log('Fetching posts for user ID:', userId);
       const posts = await ProfileAPI.getUserPosts(userId);
-      console.log('Received posts:', posts);
       set({ userPosts: posts, isLoading: false });
     } catch (error) {
       console.error('Error in fetchUserPosts:', error);

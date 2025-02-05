@@ -31,6 +31,19 @@ export interface User {
     duration: number; // e.g., in seconds
     uploadedAt: Date;
     source: string; // e.g., "native upload", "TikTok link"
+    userReaction?: UserVideoReaction | null; // The current user's reaction to this video
+    tryListItem?: UserTryList | null; // Whether this video is in the user's try list
+  }
+  
+  /**
+   * VideoDetails
+   * A subset of Video information used in other contexts
+   */
+  export interface VideoDetails {
+    videoId: string;
+    mealName: string;
+    mealDescription: string;
+    thumbnailUrl: string;
   }
   
   /**
@@ -47,6 +60,8 @@ export interface User {
     completed: boolean; // Indicates if the meal has been prepared/completed
     createdAt: Date;
     updatedAt: Date;
+    video?: VideoDetails; // Optional video details included when fetching meals
+    rating?: MealRating;
   }
   
   /**
@@ -137,4 +152,87 @@ export interface User {
     addedDate: Date;
     notes?: string; // Optional comments
   }
+  
+  /**
+   * MealRating
+   * Stores user ratings for meals they've tried
+   */
+  export interface MealRating {
+    ratingId: string;
+    userId: string;
+    videoId: string;
+    mealId: string;  // Making this required
+    rating: number;
+    comment?: string;
+    createdAt: string;
+    updatedAt: string;
+    video?: Video;
+  }
+  
+  // Supabase Database Type
+  export type Database = {
+    public: {
+      Tables: {
+        videos: {
+          Row: Video;
+          Insert: Omit<Video, 'videoId'>;
+          Update: Partial<Omit<Video, 'videoId'>>;
+        };
+        users: {
+          Row: User;
+          Insert: Omit<User, 'userId'>;
+          Update: Partial<Omit<User, 'userId'>>;
+        };
+        meals: {
+          Row: Meal;
+          Insert: Omit<Meal, 'mealId'>;
+          Update: Partial<Omit<Meal, 'mealId'>>;
+        };
+        recipes: {
+          Row: Recipe;
+          Insert: Omit<Recipe, 'recipeId'>;
+          Update: Partial<Omit<Recipe, 'recipeId'>>;
+        };
+        recipe_items: {
+          Row: RecipeItem;
+          Insert: Omit<RecipeItem, 'recipeItemId'>;
+          Update: Partial<Omit<RecipeItem, 'recipeItemId'>>;
+        };
+        ingredients: {
+          Row: Ingredient;
+          Insert: Omit<Ingredient, 'ingredientId'>;
+          Update: Partial<Omit<Ingredient, 'ingredientId'>>;
+        };
+        nutrition: {
+          Row: Nutrition;
+          Insert: Omit<Nutrition, 'nutritionId'>;
+          Update: Partial<Omit<Nutrition, 'nutritionId'>>;
+        };
+        user_video_reactions: {
+          Row: UserVideoReaction;
+          Insert: Omit<UserVideoReaction, 'reactionId'>;
+          Update: Partial<Omit<UserVideoReaction, 'reactionId'>>;
+        };
+        user_try_list: {
+          Row: UserTryList;
+          Insert: Omit<UserTryList, 'tryListId'>;
+          Update: Partial<Omit<UserTryList, 'tryListId'>>;
+        };
+        meal_ratings: {
+          Row: MealRating;
+          Insert: Omit<MealRating, 'ratingId'>;
+          Update: Partial<Omit<MealRating, 'ratingId'>>;
+        };
+      };
+      Views: {
+        [_ in never]: never;
+      };
+      Functions: {
+        [_ in never]: never;
+      };
+      Enums: {
+        reaction_type: ReactionType;
+      };
+    };
+  };
   

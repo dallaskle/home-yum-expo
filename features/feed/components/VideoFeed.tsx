@@ -1,67 +1,59 @@
-import React, { useEffect } from 'react';
-import { StyleSheet, View, Dimensions } from 'react-native';
-import { GestureDetector, Gesture } from 'react-native-gesture-handler';
-import Animated, {
-  useAnimatedStyle,
-  withSpring,
-  useSharedValue,
-  runOnJS,
-  withTiming,
-} from 'react-native-reanimated';
+import React, { useEffect, useRef } from 'react';
+import { StyleSheet, View, Dimensions, FlatList, ViewToken } from 'react-native';
 import { VideoPlayer } from './VideoPlayer';
 import { useFeedStore } from '../store/feed.store';
+import { useReactionsStore } from '../store/reactions.store';
+import { useScheduleStore } from '@/features/schedule/store/schedule.store';
+import { useRatingsStore } from '@/features/ratings/store/ratings.store';
 
 const { height: SCREEN_HEIGHT } = Dimensions.get('window');
 
 export function VideoFeed() {
   const { videos, currentVideoIndex, loadFeed, setCurrentVideoIndex } = useFeedStore();
-  const translateY = useSharedValue(0);
-  const isGestureActive = useSharedValue(false);
+  const { initialize: initializeReactions } = useReactionsStore();
+  const { initialize: initializeSchedule } = useScheduleStore();
+  const { initialize: initializeRatings } = useRatingsStore();
+  const flatListRef = useRef<FlatList>(null);
 
   useEffect(() => {
-    loadFeed(true);
+    const initializeData = async () => {
+      // Initialize all data in parallel
+      loadFeed(true),
+      initializeReactions()
+      initializeSchedule()
+      initializeRatings()
+    };
+
+    initializeData();
   }, []);
 
-  const handleSwipe = (direction: 'up' | 'down') => {
-    const nextIndex = direction === 'up' ? currentVideoIndex + 1 : currentVideoIndex - 1;
-    
-    if (nextIndex >= 0 && nextIndex < videos.length) {
-      setCurrentVideoIndex(nextIndex);
-      translateY.value = withTiming(0, { duration: 300 });
-    } else {
-      // Bounce back if we're at the end
-      translateY.value = withTiming(0, { duration: 300 });
+  const onViewableItemsChanged = React.useCallback(({ changed }: { changed: ViewToken[] }) => {
+    const viewableItem = changed.find((item) => item.isViewable);
+    if (viewableItem) {
+      setCurrentVideoIndex(viewableItem.index ?? 0);
     }
+  }, []);
+
+  const viewabilityConfig = {
+    itemVisiblePercentThreshold: 50,
   };
 
-  const gesture = Gesture.Pan()
-    .onBegin(() => {
-      isGestureActive.value = true;
-    })
-    .onUpdate((event) => {
-      translateY.value = event.translationY;
-    })
-    .onEnd((event) => {
-      isGestureActive.value = false;
-      
-      // Add a minimum threshold of 50 units for the swipe to register
-      const SWIPE_THRESHOLD = 50;
-      
-      if (Math.abs(event.translationY) >= SWIPE_THRESHOLD) {
-        if (event.translationY > 0) {
-          runOnJS(handleSwipe)('down');
-        } else {
-          runOnJS(handleSwipe)('up');
-        }
-      } else {
-        // If threshold not met, bounce back to original position
-        translateY.value = withTiming(0, { duration: 300 });
-      }
-    });
-
-  const rStyle = useAnimatedStyle(() => ({
-    transform: [{ translateY: translateY.value }],
-  }));
+  const renderItem = ({ item: video, index }: { item: any; index: number }) => (
+    <View style={styles.videoContainer}>
+      <VideoPlayer
+        video={video}
+        isActive={index === currentVideoIndex}
+        onEnd={() => {
+          if (index < videos.length - 1) {
+            flatListRef.current?.scrollToIndex({
+              index: index + 1,
+              animated: true,
+            });
+          }
+        }}
+      />
+    </View>
+  );
 
   if (videos.length === 0) {
     return <View style={styles.container} />;
@@ -69,34 +61,24 @@ export function VideoFeed() {
 
   return (
     <View style={styles.container}>
-      <GestureDetector gesture={gesture}>
-        <Animated.View style={[styles.feedContainer, rStyle]}>
-          {videos.map((video, index) => {
-            // Only render videos that are nearby the current index
-            if (Math.abs(index - currentVideoIndex) > 1) return null;
-            
-            const offset = (index - currentVideoIndex) * SCREEN_HEIGHT;
-            
-            return (
-              <Animated.View
-                key={video.videoId}
-                style={[
-                  styles.videoContainer,
-                  {
-                    transform: [{ translateY: offset }],
-                  },
-                ]}
-              >
-                <VideoPlayer
-                  video={video}
-                  isActive={index === currentVideoIndex}
-                  onEnd={() => handleSwipe('up')}
-                />
-              </Animated.View>
-            );
-          })}
-        </Animated.View>
-      </GestureDetector>
+      <FlatList
+        ref={flatListRef}
+        data={videos}
+        renderItem={renderItem}
+        keyExtractor={(item) => item.videoId}
+        showsVerticalScrollIndicator={false}
+        snapToInterval={SCREEN_HEIGHT}
+        snapToAlignment="start"
+        decelerationRate="fast"
+        onViewableItemsChanged={onViewableItemsChanged}
+        viewabilityConfig={viewabilityConfig}
+        initialScrollIndex={currentVideoIndex}
+        getItemLayout={(_, index) => ({
+          length: SCREEN_HEIGHT,
+          offset: SCREEN_HEIGHT * index,
+          index,
+        })}
+      />
     </View>
   );
 }
@@ -106,14 +88,8 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: '#333333',
   },
-  feedContainer: {
-    flex: 1,
-  },
   videoContainer: {
     height: SCREEN_HEIGHT,
     width: '100%',
-    position: 'absolute',
-    left: 0,
-    right: 0,
   },
 }); 

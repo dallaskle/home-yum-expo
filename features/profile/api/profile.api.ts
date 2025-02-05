@@ -1,8 +1,9 @@
 import { auth } from '@/config/auth';
 import { User } from '@/types/database.types';
 import { getIdToken } from 'firebase/auth';
+import { API_URLS } from '@/config/urls';
 
-const API_URL = process.env.EXPO_PUBLIC_API_URL || 'http://localhost:8001';
+const API_URL = API_URLS.base;
 
 export class ProfileAPI {
   static async updateProfile(userData: Partial<User>): Promise<User> {

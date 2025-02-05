@@ -12,6 +12,7 @@ import Colors from '@/constants/Colors';
 import { useColorScheme } from '@/components/useColorScheme';
 import { useClientOnlyValue } from '@/components/useClientOnlyValue';
 import { useAuthStore } from '@/features/auth/store/auth.store';
+import { useReactionsStore } from '@/features/feed/store/reactions.store';
 
 // You can explore the built-in icon families and icons on the web at https://icons.expo.fyi/
 function TabBarIcon(props: {
@@ -54,32 +55,7 @@ export default function RootLayout() {
 
 function RootLayoutNav() {
   const colorScheme = useColorScheme();
-  const { user, isLoading, isInitialized, initialize } = useAuthStore();
-
-  // Handle auth initialization
-  useEffect(() => {
-    let unsubscribe: (() => void) | undefined;
-    let isSubscribed = true;
-    
-    const init = async () => {
-      try {
-        if (isSubscribed) {
-          unsubscribe = await initialize();
-        }
-      } catch (error) {
-        console.error('Failed to initialize auth:', error);
-      }
-    };
-    
-    init();
-
-    return () => {
-      isSubscribed = false;
-      if (unsubscribe) {
-        unsubscribe();
-      }
-    };
-  }, []);
+  const { user, isLoading, isInitialized } = useAuthStore();
 
   // Handle navigation based on auth state
   useEffect(() => {
@@ -135,12 +111,10 @@ function RootLayoutNav() {
             headerShown: false,
             tabBarStyle: {
               backgroundColor: 'transparent',
-              borderTopColor: 'rgba(255, 102, 0, 0.5)', // FF6600 with 0.5 opacity
-              borderTopWidth: 1,
               position: 'absolute',
-              elevation: 0,
-              height: 60,
-              paddingBottom: 10,
+              elevation: 10,
+              height: 72,
+              paddingBottom: 20,
               shadowColor: '#FF6600',
               shadowOffset: {
                 width: 0,
@@ -162,8 +136,22 @@ function RootLayoutNav() {
           <Tabs.Screen
             name="two"
             options={{
-              title: 'Upload',
-              tabBarIcon: ({ color }) => <TabBarIcon name="upload" color={color} />,
+              title: 'Want to try',
+              tabBarIcon: ({ color }) => <TabBarIcon name="list" color={color} />,
+              tabBarStyle: {
+                backgroundColor: 'transparent',
+                position: 'absolute',
+                elevation: 10,
+                height: 72,
+                paddingBottom: 20,
+                shadowColor: '#FF6600',
+                shadowOffset: {
+                  width: 0,
+                  height: -4,
+                },
+                shadowOpacity: 0.3,
+                shadowRadius: 4,
+              },
             }}
           />
           <Tabs.Screen
@@ -171,6 +159,20 @@ function RootLayoutNav() {
             options={{
               title: 'Profile',
               tabBarIcon: ({ color }) => <TabBarIcon name="user" color={color} />,
+              tabBarStyle: {
+                backgroundColor: '#333333',
+                position: 'absolute',
+                elevation: 10,
+                height: 72,
+                paddingBottom: 20,
+                shadowColor: '#FF6600',
+                shadowOffset: {
+                  width: 0,
+                  height: -4,
+                },
+                shadowOpacity: 0.3,
+                shadowRadius: 4,
+              },
             }}
           />
         </Tabs>

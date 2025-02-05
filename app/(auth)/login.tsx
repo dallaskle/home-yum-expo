@@ -22,9 +22,7 @@ export default function Login() {
   const handleLogin = async () => {
     try {
       await login(email, password);
-      router.replace('/(tabs)');
     } catch (err) {
-      // Error is handled by the store
       console.error('Login failed:', err);
     }
   };
@@ -136,5 +134,12 @@ const styles = StyleSheet.create({
   error: {
     color: '#ff3b30',
     marginBottom: 10,
+  },
+  result: {
+    marginTop: 16,
+    fontSize: 14,
+    lineHeight: 20,
+    textAlign: 'left',
+    width: '100%',
   },
 }); 
