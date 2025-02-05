@@ -160,8 +160,8 @@ function RootLayoutNav() {
           <Tabs.Screen
             name="two"
             options={{
-              title: 'Upload',
-              tabBarIcon: ({ color }) => <TabBarIcon name="upload" color={color} />,
+              title: 'Want to try',
+              tabBarIcon: ({ color }) => <TabBarIcon name="list" color={color} />,
             }}
           />
           <Tabs.Screen
