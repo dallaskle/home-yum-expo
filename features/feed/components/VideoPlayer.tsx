@@ -142,7 +142,11 @@ export function VideoPlayer({ video, isActive, onEnd }: VideoPlayerProps) {
       </View>
 
       {/* Video Reactions */}
-      {isActive && <VideoReactions videoId={video.videoId} />}
+      {isActive && <VideoReactions 
+        videoId={video.videoId} 
+        initialReaction={video.userReaction} 
+        initialTryListItem={video.tryListItem}
+      />}
     </View>
   );
 }

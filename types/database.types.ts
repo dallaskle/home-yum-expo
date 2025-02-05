@@ -31,6 +31,8 @@ export interface User {
     duration: number; // e.g., in seconds
     uploadedAt: Date;
     source: string; // e.g., "native upload", "TikTok link"
+    userReaction?: UserVideoReaction | null; // The current user's reaction to this video
+    tryListItem?: UserTryList | null; // Whether this video is in the user's try list
   }
   
   /**

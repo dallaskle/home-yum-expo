@@ -12,6 +12,7 @@ import Colors from '@/constants/Colors';
 import { useColorScheme } from '@/components/useColorScheme';
 import { useClientOnlyValue } from '@/components/useClientOnlyValue';
 import { useAuthStore } from '@/features/auth/store/auth.store';
+import { useReactionsStore } from '@/features/feed/store/reactions.store';
 
 // You can explore the built-in icon families and icons on the web at https://icons.expo.fyi/
 function TabBarIcon(props: {
@@ -55,6 +56,7 @@ export default function RootLayout() {
 function RootLayoutNav() {
   const colorScheme = useColorScheme();
   const { user, isLoading, isInitialized, initialize } = useAuthStore();
+  const { initialize: initializeReactions } = useReactionsStore();
 
   // Handle auth initialization
   useEffect(() => {
@@ -65,9 +67,13 @@ function RootLayoutNav() {
       try {
         if (isSubscribed) {
           unsubscribe = await initialize();
+          // Initialize reactions after auth is initialized and we have a user
+          if (user) {
+            await initializeReactions();
+          }
         }
       } catch (error) {
-        console.error('Failed to initialize auth:', error);
+        console.error('Failed to initialize:', error);
       }
     };
     
@@ -79,7 +85,7 @@ function RootLayoutNav() {
         unsubscribe();
       }
     };
-  }, []);
+  }, [user]);
 
   // Handle navigation based on auth state
   useEffect(() => {

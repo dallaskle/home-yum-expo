@@ -36,7 +36,19 @@ export class FeedAPI {
         throw new Error('Failed to fetch video feed');
       }
 
-      return await response.json();
+      const videos = await response.json();
+      return videos.map((video: any) => ({
+        ...video,
+        uploadedAt: new Date(video.uploadedAt),
+        userReaction: video.userReaction ? {
+          ...video.userReaction,
+          reactionDate: new Date(video.userReaction.reactionDate)
+        } : null,
+        tryListItem: video.tryListItem ? {
+          ...video.tryListItem,
+          addedDate: new Date(video.tryListItem.addedDate)
+        } : null
+      }));
     } catch (error) {
       console.error('Error fetching feed:', error);
       throw error;

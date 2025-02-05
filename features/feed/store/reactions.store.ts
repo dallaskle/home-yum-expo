@@ -34,18 +34,28 @@ export const useReactionsStore = create<ReactionsState>()((set, get) => ({
         ReactionsAPI.getTryList(),
       ]);
 
-      set({
-        reactions: reactions.reduce((acc, reaction) => ({
-          ...acc,
-          [reaction.videoId]: reaction,
-        }), {}),
-        tryList: tryList.reduce((acc, item) => ({
-          ...acc,
-          [item.videoId]: item,
-        }), {}),
-        isLoading: false,
-      });
+      // Only update state if we got valid data
+      if (Array.isArray(reactions) && Array.isArray(tryList)) {
+        set({
+          reactions: reactions.reduce((acc, reaction) => ({
+            ...acc,
+            [reaction.videoId]: reaction,
+          }), {}),
+          tryList: tryList.reduce((acc, item) => ({
+            ...acc,
+            [item.videoId]: item,
+          }), {}),
+          isLoading: false,
+          error: null,
+        });
+      } else {
+        set({
+          isLoading: false,
+          error: 'Invalid data received from server',
+        });
+      }
     } catch (error) {
+      console.error('Failed to initialize reactions:', error);
       set({
         error: error instanceof Error ? error.message : 'Failed to initialize reactions',
         isLoading: false,
@@ -57,13 +67,15 @@ export const useReactionsStore = create<ReactionsState>()((set, get) => ({
     set({ isLoading: true, error: null });
     try {
       const reaction = await ReactionsAPI.addReaction(videoId, reactionType);
-      set(state => ({
-        reactions: {
-          ...state.reactions,
-          [videoId]: reaction,
-        },
-        isLoading: false,
-      }));
+      if (reaction && reaction.videoId) {
+        set(state => ({
+          reactions: {
+            ...state.reactions,
+            [videoId]: reaction,
+          },
+          isLoading: false,
+        }));
+      }
     } catch (error) {
       set({
         error: error instanceof Error ? error.message : 'Failed to add reaction',
@@ -97,13 +109,15 @@ export const useReactionsStore = create<ReactionsState>()((set, get) => ({
     set({ isLoading: true, error: null });
     try {
       const tryListItem = await ReactionsAPI.addToTryList(videoId, notes);
-      set(state => ({
-        tryList: {
-          ...state.tryList,
-          [videoId]: tryListItem,
-        },
-        isLoading: false,
-      }));
+      if (tryListItem && tryListItem.videoId) {
+        set(state => ({
+          tryList: {
+            ...state.tryList,
+            [videoId]: tryListItem,
+          },
+          isLoading: false,
+        }));
+      }
     } catch (error) {
       set({
         error: error instanceof Error ? error.message : 'Failed to add to try list',

@@ -2,15 +2,17 @@ import React, { useState } from 'react';
 import { View, TouchableOpacity, StyleSheet } from 'react-native';
 import { FontAwesome } from '@expo/vector-icons';
 import { useReactionsStore } from '../store/reactions.store';
-import { ReactionType } from '@/types/database.types';
+import { ReactionType, UserVideoReaction, UserTryList } from '@/types/database.types';
 import Colors from '@/constants/Colors';
 import { useColorScheme } from '@/components/useColorScheme';
 
 interface VideoReactionsProps {
   videoId: string;
+  initialReaction?: UserVideoReaction | null;
+  initialTryListItem?: UserTryList | null;
 }
 
-export function VideoReactions({ videoId }: VideoReactionsProps) {
+export function VideoReactions({ videoId, initialReaction, initialTryListItem }: VideoReactionsProps) {
   const colorScheme = useColorScheme();
   const {
     getReactionForVideo,
@@ -22,9 +24,11 @@ export function VideoReactions({ videoId }: VideoReactionsProps) {
   } = useReactionsStore();
 
   const [optimisticReaction, setOptimisticReaction] = useState<ReactionType | null>(
-    getReactionForVideo(videoId)?.reactionType ?? null
+    initialReaction?.reactionType ?? getReactionForVideo(videoId)?.reactionType ?? null
   );
-  const [optimisticTryList, setOptimisticTryList] = useState(isInTryList(videoId));
+  const [optimisticTryList, setOptimisticTryList] = useState<boolean>(
+    initialTryListItem !== null || isInTryList(videoId)
+  );
 
   const handleReaction = async (type: ReactionType) => {
     const previousReaction = optimisticReaction;
