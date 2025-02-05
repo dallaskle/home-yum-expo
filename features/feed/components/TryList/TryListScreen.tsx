@@ -1,0 +1,322 @@
+import React, { useEffect, useState } from 'react';
+import { StyleSheet, View, FlatList, Text, Image, TouchableOpacity, Dimensions, Modal } from 'react-native';
+import { useReactionsStore } from '../../store/reactions.store';
+import { Video, UserTryList } from '@/types/database.types';
+import Colors from '@/constants/Colors';
+import { useColorScheme } from '@/components/useColorScheme';
+import { FontAwesome } from '@expo/vector-icons';
+import { router } from 'expo-router';
+import { auth } from '@/config/auth';
+
+const { width: SCREEN_WIDTH } = Dimensions.get('window');
+const ITEM_HEIGHT = 120;
+
+interface TryListItemProps {
+  videoId: string;
+  onRemove: () => void;
+}
+
+interface ConfirmModalProps {
+  visible: boolean;
+  mealName: string;
+  onConfirm: () => void;
+  onCancel: () => void;
+}
+
+function ConfirmModal({ visible, mealName, onConfirm, onCancel }: ConfirmModalProps) {
+  const colorScheme = useColorScheme();
+
+  return (
+    <Modal
+      visible={visible}
+      transparent
+      animationType="fade"
+    >
+      <View style={styles.modalOverlay}>
+        <View style={styles.modalContent}>
+          <Text style={[styles.modalText, { color: Colors[colorScheme ?? 'light'].text }]}>
+            Are you sure you want to remove {mealName} from your want to try list?
+          </Text>
+          <View style={styles.modalButtons}>
+            <TouchableOpacity
+              style={[styles.modalButton, styles.cancelButton]}
+              onPress={onCancel}
+            >
+              <Text style={styles.modalButtonText}>Cancel</Text>
+            </TouchableOpacity>
+            <TouchableOpacity
+              style={[styles.modalButton, styles.confirmButton]}
+              onPress={onConfirm}
+            >
+              <Text style={styles.modalButtonText}>Remove</Text>
+            </TouchableOpacity>
+          </View>
+        </View>
+      </View>
+    </Modal>
+  );
+}
+
+function TryListItem({ videoId, onRemove }: TryListItemProps) {
+  const colorScheme = useColorScheme();
+  const [video, setVideo] = useState<Video | null>(null);
+  const [showConfirm, setShowConfirm] = useState(false);
+
+  useEffect(() => {
+    // Fetch video details
+    const fetchVideo = async () => {
+      try {
+        const response = await fetch(`https://d74b-24-153-157-38.ngrok-free.app/api/videos/${videoId}`, {
+          headers: {
+            'Authorization': `Bearer ${await getAuthToken()}`,
+          },
+        });
+        if (response.ok) {
+          const data = await response.json();
+          setVideo(data);
+        }
+      } catch (error) {
+        console.error('Failed to fetch video:', error);
+      }
+    };
+
+    fetchVideo();
+  }, [videoId]);
+
+  const handleRemovePress = () => {
+    if (video) {
+      setShowConfirm(true);
+    }
+  };
+
+  if (!video) {
+    return null;
+  }
+
+  return (
+    <>
+      <View style={styles.itemContainer}>
+        <Image 
+          source={{ uri: video.thumbnailUrl }} 
+          style={styles.thumbnail}
+        />
+        <View style={styles.itemContent}>
+          <Text style={[styles.title, { color: Colors[colorScheme ?? 'light'].text }]} numberOfLines={2}>
+            {video.mealName}
+          </Text>
+          <Text style={[styles.description, { color: Colors[colorScheme ?? 'light'].text }]} numberOfLines={2}>
+            {video.mealDescription}
+          </Text>
+        </View>
+        <TouchableOpacity 
+          style={styles.removeButton}
+          onPress={handleRemovePress}
+        >
+          <FontAwesome 
+            name="times" 
+            size={20} 
+            color={Colors[colorScheme ?? 'light'].text} 
+          />
+        </TouchableOpacity>
+      </View>
+      <ConfirmModal
+        visible={showConfirm}
+        mealName={video.mealName}
+        onConfirm={() => {
+          setShowConfirm(false);
+          onRemove();
+        }}
+        onCancel={() => setShowConfirm(false)}
+      />
+    </>
+  );
+}
+
+async function getAuthToken(): Promise<string> {
+  const token = await auth.currentUser?.getIdToken();
+  if (!token) throw new Error('No auth token available');
+  return token;
+}
+
+export function TryListScreen() {
+  const { tryList, initialize: initializeReactions, removeFromTryList } = useReactionsStore();
+  const [removedItems, setRemovedItems] = useState<Record<string, UserTryList>>({});
+
+  useEffect(() => {
+    initializeReactions();
+  }, []);
+
+  const tryListItems = Object.values(tryList);
+
+  const handleRemove = async (videoId: string) => {
+    // Store the item before removing it
+    const itemToRemove = tryList[videoId];
+    
+    // Optimistically update UI
+    setRemovedItems(prev => ({
+      ...prev,
+      [videoId]: itemToRemove
+    }));
+
+    try {
+      await removeFromTryList(videoId);
+    } catch (error) {
+      // On error, restore the item
+      setRemovedItems(prev => {
+        const { [videoId]: _, ...rest } = prev;
+        return rest;
+      });
+      console.error('Failed to remove from try list:', error);
+    }
+  };
+
+  const displayItems = tryListItems.filter(item => !removedItems[item.videoId]);
+
+  if (displayItems.length === 0) {
+    return (
+      <View style={styles.emptyContainer}>
+        <Text style={[styles.emptyText, { color: Colors[useColorScheme() ?? 'light'].text }]}>
+          No meals in your try list yet
+        </Text>
+        <TouchableOpacity 
+          style={styles.browseButton}
+          onPress={() => router.push('/')}
+        >
+          <Text style={[styles.browseText, { color: Colors[useColorScheme() ?? 'light'].text }]}>
+            Browse Recipes
+          </Text>
+        </TouchableOpacity>
+      </View>
+    );
+  }
+
+  return (
+    <View style={styles.container}>
+      <Text style={styles.pageTitle}>Want to Try</Text>
+      <FlatList
+        data={displayItems}
+        renderItem={({ item }) => (
+          <TryListItem
+            videoId={item.videoId}
+            onRemove={() => handleRemove(item.videoId)}
+          />
+        )}
+        keyExtractor={(item) => item.tryListId}
+        contentContainerStyle={styles.listContent}
+        showsVerticalScrollIndicator={false}
+      />
+    </View>
+  );
+}
+
+const styles = StyleSheet.create({
+  container: {
+    flex: 1,
+    backgroundColor: '#333333',
+    paddingTop: 60,
+  },
+  pageTitle: {
+    fontSize: 28,
+    fontWeight: 'bold',
+    color: '#FFFFFF',
+    paddingHorizontal: 16,
+    marginTop: 8,
+  },
+  listContent: {
+    padding: 16,
+  },
+  itemContainer: {
+    flexDirection: 'row',
+    backgroundColor: 'rgba(255, 255, 255, 0.1)',
+    borderRadius: 12,
+    marginBottom: 16,
+    overflow: 'hidden',
+    height: ITEM_HEIGHT,
+  },
+  thumbnail: {
+    width: ITEM_HEIGHT,
+    height: ITEM_HEIGHT,
+  },
+  itemContent: {
+    flex: 1,
+    padding: 12,
+    justifyContent: 'center',
+  },
+  title: {
+    fontSize: 16,
+    fontWeight: 'bold',
+    marginBottom: 4,
+  },
+  description: {
+    fontSize: 14,
+    opacity: 0.8,
+  },
+  removeButton: {
+    padding: 12,
+    justifyContent: 'center',
+  },
+  emptyContainer: {
+    flex: 1,
+    alignItems: 'center',
+    justifyContent: 'center',
+    padding: 20,
+  },
+  emptyText: {
+    fontSize: 18,
+    textAlign: 'center',
+    marginBottom: 20,
+  },
+  browseButton: {
+    paddingVertical: 12,
+    paddingHorizontal: 24,
+    backgroundColor: Colors.light.accent,
+    borderRadius: 8,
+  },
+  browseText: {
+    fontSize: 16,
+    fontWeight: 'bold',
+  },
+  modalOverlay: {
+    flex: 1,
+    backgroundColor: 'rgba(0, 0, 0, 0.7)',
+    justifyContent: 'center',
+    alignItems: 'center',
+    padding: 20,
+  },
+  modalContent: {
+    backgroundColor: '#333333',
+    borderRadius: 12,
+    padding: 20,
+    width: '100%',
+    maxWidth: 400,
+  },
+  modalText: {
+    fontSize: 16,
+    textAlign: 'center',
+    marginBottom: 20,
+    color: '#FFFFFF',
+  },
+  modalButtons: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    gap: 12,
+  },
+  modalButton: {
+    flex: 1,
+    paddingVertical: 12,
+    paddingHorizontal: 24,
+    borderRadius: 8,
+    alignItems: 'center',
+  },
+  cancelButton: {
+    backgroundColor: 'rgba(255, 255, 255, 0.1)',
+  },
+  confirmButton: {
+    backgroundColor: Colors.light.accent,
+  },
+  modalButtonText: {
+    color: '#FFFFFF',
+    fontSize: 16,
+    fontWeight: 'bold',
+  },
+}); 

@@ -1,10 +1,10 @@
 import { StyleSheet, View } from 'react-native';
-import { YouTubeViewer } from '@/features/feed/components/YoutubeFeed/YouTubeViewer';
+import { TryListScreen } from '@/features/feed/components/TryList/TryListScreen';
 
 export default function TabTwoScreen() {
   return (
     <View style={styles.container}>
-      <YouTubeViewer />
+      <TryListScreen />
     </View>
   );
 }
