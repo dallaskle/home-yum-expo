@@ -26,31 +26,37 @@ export function TriedView() {
     });
   };
 
-  const getRatedMeals = () => {
-    const meals = Object.values(scheduledMeals)
-      .filter(meal => meal.rating) // Only get meals with ratings
-      .sort((a, b) => {
-        // Sort by date in reverse chronological order
-        return new Date(b.mealDate).getTime() - new Date(a.mealDate).getTime();
-      });
-
-    return meals;
-  };
-
   const getDateLabel = (dateStr: string): string => {
-    const today = new Date();
+    // Create dates in local timezone
+    const now = new Date();
+    const date = new Date(dateStr + 'T00:00:00'); // Force local timezone by adding time
+    
+    // Reset hours for all date comparisons
+    const today = new Date(now);
     today.setHours(0, 0, 0, 0);
+    const compareDate = new Date(date);
+    compareDate.setHours(0, 0, 0, 0);
     
-    const date = new Date(dateStr);
-    date.setHours(0, 0, 0, 0);
-    
-    const diffDays = Math.floor((today.getTime() - date.getTime()) / (1000 * 60 * 60 * 24));
+    const diffDays = Math.floor((today.getTime() - compareDate.getTime()) / (1000 * 60 * 60 * 24));
     
     if (diffDays === 0) return 'Today';
     if (diffDays === 1) return 'Yesterday';
     if (diffDays <= 7) return 'This Week';
     if (diffDays <= 14) return 'Last Week';
     return 'Earlier';
+  };
+
+  const getRatedMeals = () => {
+    const meals = Object.values(scheduledMeals)
+      .filter(meal => meal.rating) // Only get meals with ratings
+      .sort((a, b) => {
+        // Sort by date in reverse chronological order, using consistent timezone handling
+        const dateA = new Date(a.mealDate + 'T00:00:00');
+        const dateB = new Date(b.mealDate + 'T00:00:00');
+        return dateB.getTime() - dateA.getTime();
+      });
+
+    return meals;
   };
 
   const groupMealsByDate = () => {
