@@ -1,0 +1,28 @@
+{
+  "cli": {
+    "version": ">= 5.9.1"
+  },
+  "build": {
+    "development": {
+      "developmentClient": true,
+      "distribution": "internal"
+    },
+    "preview": {
+      "distribution": "internal"
+    },
+    "production": {
+      "ios": {
+        "resourceClass": "m1-medium"
+      }
+    }
+  },
+  "submit": {
+    "production": {
+      "ios": {
+        "appleId": "${process.env.EXPO_PUBLIC_EAS_APPLE_ID}",
+        "ascAppId": "${process.env.EXPO_PUBLIC_EAS_ASC_APP_ID}",
+        "appleTeamId": "${process.env.EXPO_PUBLIC_EAS_APPLE_TEAM_ID}"
+      }
+    }
+  }
+} 
