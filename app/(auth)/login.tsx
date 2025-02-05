@@ -21,7 +21,7 @@ export default function Login() {
 
   const handleLogin = async () => {
     try {
-      await login('dallas.klein@gauntletai.com', 'password');
+      await login(email, password);
     } catch (err) {
       console.error('Login failed:', err);
     }
