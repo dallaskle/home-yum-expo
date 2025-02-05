@@ -23,43 +23,51 @@ export const useScheduleStore = create<ScheduleState>()((set, get) => ({
   isLoading: false,
   error: null,
 
-  initialize: async () => {
-    set({ isLoading: true, error: null });
-    try {
-      const meals = await ScheduleAPI.getScheduledMeals();
-      set({
-        scheduledMeals: meals.reduce((acc, meal) => ({
-          ...acc,
-          [meal.mealId]: meal,
-        }), {}),
-        isLoading: false,
-      });
-    } catch (error) {
-      set({
-        error: error instanceof Error ? error.message : 'Failed to initialize schedule',
-        isLoading: false,
-      });
+  initialize: () => {
+    // Only set loading if we don't have any data
+    const state = get();
+    const hasNoData = Object.keys(state.scheduledMeals).length === 0;
+    if (hasNoData) {
+      set({ isLoading: true, error: null });
     }
+
+    return ScheduleAPI.getScheduledMeals()
+      .then(meals => {
+        set({
+          scheduledMeals: meals.reduce((acc, meal) => ({
+            ...acc,
+            [meal.mealId]: meal,
+          }), {}),
+          isLoading: false,
+        });
+      })
+      .catch(error => {
+        set({
+          error: error instanceof Error ? error.message : 'Failed to initialize schedule',
+          isLoading: false,
+        });
+      });
   },
 
-  scheduleMeal: async (videoId: string, mealDate: string, mealTime: string) => {
+  scheduleMeal: (videoId: string, mealDate: string, mealTime: string) => {
     set({ isLoading: true, error: null });
-    try {
-      const meal = await ScheduleAPI.scheduleMeal(videoId, mealDate, mealTime);
-      set(state => ({
-        scheduledMeals: {
-          ...state.scheduledMeals,
-          [meal.mealId]: meal,
-        },
-        isLoading: false,
-      }));
-    } catch (error) {
-      set({
-        error: error instanceof Error ? error.message : 'Failed to schedule meal',
-        isLoading: false,
+    return ScheduleAPI.scheduleMeal(videoId, mealDate, mealTime)
+      .then(meal => {
+        set(state => ({
+          scheduledMeals: {
+            ...state.scheduledMeals,
+            [meal.mealId]: meal,
+          },
+          isLoading: false,
+        }));
+      })
+      .catch(error => {
+        set({
+          error: error instanceof Error ? error.message : 'Failed to schedule meal',
+          isLoading: false,
+        });
+        throw error;
       });
-      throw error;
-    }
   },
 
   updateMealSchedule: async (mealId: string, mealDate: string, mealTime: string) => {

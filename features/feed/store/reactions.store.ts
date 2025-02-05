@@ -10,7 +10,7 @@ interface ReactionsState {
   error: string | null;
   
   // Actions
-  initialize: () => Promise<void>;
+  initialize: () => void;
   addReaction: (videoId: string, reactionType: ReactionType) => Promise<void>;
   removeReaction: (videoId: string) => Promise<void>;
   addToTryList: (videoId: string, notes?: string) => Promise<void>;
@@ -27,47 +27,65 @@ export const useReactionsStore = create<ReactionsState>()((set, get) => ({
   isLoading: false,
   error: null,
 
-  initialize: async () => {
+  initialize: () => {
     // Check if user is authenticated first
     if (!auth.currentUser) {
       set({ error: 'Not authenticated', isLoading: false });
       return;
     }
 
-    set({ isLoading: true, error: null });
-    try {
-      const [reactions, tryList] = await Promise.all([
-        ReactionsAPI.getUserReactions(),
-        ReactionsAPI.getTryList(),
-      ]);
-
-      // Only update state if we got valid data
-      if (Array.isArray(reactions) && Array.isArray(tryList)) {
-        set({
-          reactions: reactions.reduce((acc, reaction) => ({
-            ...acc,
-            [reaction.videoId]: reaction,
-          }), {}),
-          tryList: tryList.reduce((acc, item) => ({
-            ...acc,
-            [item.videoId]: item,
-          }), {}),
-          isLoading: false,
-          error: null,
-        });
-      } else {
-        set({
-          isLoading: false,
-          error: 'Invalid data received from server',
-        });
-      }
-    } catch (error) {
-      console.error('Failed to initialize reactions:', error);
-      set({
-        error: error instanceof Error ? error.message : 'Failed to initialize reactions',
-        isLoading: false,
-      });
+    // Only set loading if we don't have any data
+    const state = get();
+    const hasNoData = Object.keys(state.reactions).length === 0 && Object.keys(state.tryList).length === 0;
+    if (hasNoData) {
+      set({ isLoading: true });
     }
+
+    // Handle reactions and try list separately
+    ReactionsAPI.getUserReactions()
+      .then(reactions => {
+        if (Array.isArray(reactions)) {
+          set(state => ({
+            reactions: reactions.reduce((acc, reaction) => ({
+              ...acc,
+              [reaction.videoId]: reaction,
+            }), {}),
+            error: null,
+          }));
+        }
+      })
+      .catch(error => {
+        console.error('Failed to initialize reactions:', error);
+        set(state => ({
+          ...state,
+          error: error instanceof Error ? error.message : 'Failed to initialize reactions',
+        }));
+      });
+
+    ReactionsAPI.getTryList()
+      .then(tryList => {
+        if (Array.isArray(tryList)) {
+          set(state => ({
+            tryList: tryList.reduce((acc, item) => ({
+              ...acc,
+              [item.videoId]: item,
+            }), {}),
+            isLoading: false,
+            error: null,
+          }));
+        }
+      })
+      .catch(error => {
+        console.error('Failed to initialize try list:', error);
+        set(state => ({
+          ...state,
+          error: error instanceof Error ? error.message : 'Failed to initialize try list',
+          isLoading: false,
+        }));
+      });
+
+    // Return a promise that resolves when both operations are complete
+    return;
   },
 
   addReaction: async (videoId: string, reactionType: ReactionType) => {

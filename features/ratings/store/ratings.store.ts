@@ -36,9 +36,15 @@ export const useRatingsStore = create<RatingsState>()((set, get) => ({
   error: null,
 
   initialize: async () => {
-    set({ isLoading: true, error: null });
+    // Only set loading if we don't have any data
+    const state = get();
+    const hasNoData = state.aggregatedRatings.length === 0;
+    if (hasNoData) {
+      set({ isLoading: true, error: null });
+    }
+
     try {
-      await get().getAggregatedRatings();
+      get().getAggregatedRatings();
       set({ isLoading: false });
     } catch (error) {
       set({
@@ -48,26 +54,27 @@ export const useRatingsStore = create<RatingsState>()((set, get) => ({
     }
   },
 
-  getAggregatedRatings: async () => {
-    try {
-      const response = await fetch(`${API_URLS.api}/meals/ratings/aggregated`, {
-        headers: {
-          'Authorization': `Bearer ${await auth.currentUser?.getIdToken()}`,
-        },
-      });
-
+  getAggregatedRatings: () => {
+    return fetch(`${API_URLS.api}/meals/ratings/aggregated`, {
+      headers: {
+        'Authorization': `Bearer ${auth.currentUser?.getIdToken()}`,
+      },
+    })
+    .then(response => {
       if (!response.ok) {
         throw new Error('Failed to get aggregated ratings');
       }
-
-      const data = await response.json();
+      return response.json();
+    })
+    .then(data => {
       set({ aggregatedRatings: data });
-    } catch (error) {
+    })
+    .catch(error => {
       set({
         error: error instanceof Error ? error.message : 'Failed to get aggregated ratings',
       });
       throw error;
-    }
+    });
   },
 
   rateMeal: async (videoId: string, rating: number, mealId?: string, comment?: string) => {
