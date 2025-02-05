@@ -44,7 +44,7 @@ export const useRatingsStore = create<RatingsState>()((set, get) => ({
     }
 
     try {
-      get().getAggregatedRatings();
+      await get().getAggregatedRatings();
       set({ isLoading: false });
     } catch (error) {
       set({
@@ -54,27 +54,32 @@ export const useRatingsStore = create<RatingsState>()((set, get) => ({
     }
   },
 
-  getAggregatedRatings: () => {
-    return fetch(`${API_URLS.api}/meals/ratings/aggregated`, {
-      headers: {
-        'Authorization': `Bearer ${auth.currentUser?.getIdToken()}`,
-      },
-    })
-    .then(response => {
+  getAggregatedRatings: async () => {
+    try {
+      const token = await auth.currentUser?.getIdToken();
+      if (!token) {
+        throw new Error('No auth token available');
+      }
+
+      const response = await fetch(`${API_URLS.api}/meals/ratings/aggregated`, {
+        headers: {
+          'Authorization': `Bearer ${token}`,
+        },
+      });
+
       if (!response.ok) {
         throw new Error('Failed to get aggregated ratings');
       }
-      return response.json();
-    })
-    .then(data => {
+
+      const data = await response.json();
       set({ aggregatedRatings: data });
-    })
-    .catch(error => {
+      return data;
+    } catch (error) {
       set({
         error: error instanceof Error ? error.message : 'Failed to get aggregated ratings',
       });
       throw error;
-    });
+    }
   },
 
   rateMeal: async (videoId: string, rating: number, mealId?: string, comment?: string) => {
