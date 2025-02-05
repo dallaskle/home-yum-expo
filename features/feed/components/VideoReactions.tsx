@@ -1,5 +1,5 @@
-import React from 'react';
-import { View, TouchableOpacity, StyleSheet, ActivityIndicator } from 'react-native';
+import React, { useState } from 'react';
+import { View, TouchableOpacity, StyleSheet } from 'react-native';
 import { FontAwesome } from '@expo/vector-icons';
 import { useReactionsStore } from '../store/reactions.store';
 import { ReactionType } from '@/types/database.types';
@@ -19,11 +19,10 @@ export function VideoReactions({ videoId }: VideoReactionsProps) {
     removeReaction,
     addToTryList,
     removeFromTryList,
-    isLoading,
   } = useReactionsStore();
 
   const currentReaction = getReactionForVideo(videoId);
-  const inTryList = isInTryList(videoId);
+  const [optimisticTryList, setOptimisticTryList] = useState(isInTryList(videoId));
 
   const handleReaction = async (type: ReactionType) => {
     try {
@@ -38,24 +37,22 @@ export function VideoReactions({ videoId }: VideoReactionsProps) {
   };
 
   const handleTryList = async () => {
+    const wasInTryList = optimisticTryList;
     try {
-      if (inTryList) {
+      // Optimistically update the UI
+      setOptimisticTryList(!wasInTryList);
+      
+      if (wasInTryList) {
         await removeFromTryList(videoId);
       } else {
         await addToTryList(videoId);
       }
     } catch (error) {
+      // Revert the optimistic update on error
+      setOptimisticTryList(wasInTryList);
       console.error('Failed to handle try list:', error);
     }
   };
-
-  if (isLoading) {
-    return (
-      <View style={styles.container}>
-        <ActivityIndicator color={Colors[colorScheme ?? 'light'].accent} />
-      </View>
-    );
-  }
 
   return (
     <View style={styles.container}>
@@ -90,9 +87,9 @@ export function VideoReactions({ videoId }: VideoReactionsProps) {
         onPress={handleTryList}
       >
         <FontAwesome
-          name="bookmark"
+          name={optimisticTryList ? "check" : "plus"}
           size={24}
-          color={inTryList
+          color={optimisticTryList
             ? Colors[colorScheme ?? 'light'].accent
             : Colors[colorScheme ?? 'light'].text}
         />
@@ -105,7 +102,7 @@ const styles = StyleSheet.create({
   container: {
     position: 'absolute',
     right: 16,
-    bottom: 110,
+    bottom: 144,
     alignItems: 'center',
     justifyContent: 'center',
     gap: 24,
