@@ -129,7 +129,9 @@ export function ProfileScreen() {
       </View>
 
       {/* Tab Content */}
-      {renderTabContent()}
+      <View style={{ paddingBottom: 72 }}>
+        {renderTabContent()}
+      </View>
     </ScrollView>
   );
 }

@@ -159,6 +159,20 @@ function RootLayoutNav() {
             options={{
               title: 'Profile',
               tabBarIcon: ({ color }) => <TabBarIcon name="user" color={color} />,
+              tabBarStyle: {
+                backgroundColor: '#333333',
+                position: 'absolute',
+                elevation: 10,
+                height: 72,
+                paddingBottom: 20,
+                shadowColor: '#FF6600',
+                shadowOffset: {
+                  width: 0,
+                  height: -4,
+                },
+                shadowOpacity: 0.3,
+                shadowRadius: 4,
+              },
             }}
           />
         </Tabs>
