@@ -161,6 +161,7 @@ export interface User {
     ratingId: string;
     userId: string;
     videoId: string;
+    mealId: string;  // Making this required
     rating: number;
     comment?: string;
     createdAt: string;

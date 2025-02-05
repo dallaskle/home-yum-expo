@@ -135,7 +135,7 @@ export function ScheduleView() {
                     mealName: meal.video?.mealName || 'Unnamed Meal'
                   })}
                 >
-                  {meal.rating ? (
+                  {meal.rating && meal.rating.mealId === meal.mealId ? (
                     <View style={styles.ratingContainer}>
                       {Array.from({ length: meal.rating.rating }, (_, index) => (
                         <FontAwesome
