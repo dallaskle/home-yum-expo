@@ -16,7 +16,7 @@ interface RecipeDetailsModalProps {
 export function RecipeDetailsModal({ visible, videoId, onClose }: RecipeDetailsModalProps) {
   const colorScheme = useColorScheme();
   const [activeTab, setActiveTab] = useState<TabType>('ingredients');
-  const { recipe, recipeItems, ingredients, nutrition, isLoading, error, fetchRecipeData } = useMealStore();
+  const { recipe, recipeItems, ingredients, nutrition, isLoading, error, fetchRecipeData, generateRecipeData } = useMealStore();
 
   useEffect(() => {
     if (visible && videoId) {
@@ -24,13 +24,31 @@ export function RecipeDetailsModal({ visible, videoId, onClose }: RecipeDetailsM
     }
   }, [visible, videoId]);
 
+  const handleGenerateRecipe = async () => {
+    try {
+      await generateRecipeData(videoId);
+    } catch (error) {
+      console.error('Failed to generate recipe:', error);
+    }
+  };
+
+  const renderEmptyState = () => (
+    <View style={styles.emptyContainer}>
+      <Text style={[styles.emptyText, { color: Colors[colorScheme ?? 'light'].text }]}>
+        No recipe data available
+      </Text>
+      <TouchableOpacity
+        style={[styles.generateButton, { backgroundColor: Colors[colorScheme ?? 'light'].accent }]}
+        onPress={handleGenerateRecipe}
+      >
+        <Text style={styles.generateButtonText}>Generate Recipe</Text>
+      </TouchableOpacity>
+    </View>
+  );
+
   const renderIngredients = () => {
     if (ingredients.length === 0) {
-      return (
-        <Text style={[styles.emptyText, { color: Colors[colorScheme ?? 'light'].text }]}>
-          No ingredients available
-        </Text>
-      );
+      return renderEmptyState();
     }
 
     return ingredients.map((ingredient, index) => (
@@ -44,11 +62,7 @@ export function RecipeDetailsModal({ visible, videoId, onClose }: RecipeDetailsM
 
   const renderInstructions = () => {
     if (recipeItems.length === 0) {
-      return (
-        <Text style={[styles.emptyText, { color: Colors[colorScheme ?? 'light'].text }]}>
-          No instructions available
-        </Text>
-      );
+      return renderEmptyState();
     }
 
     const sortedItems = [...recipeItems].sort((a, b) => a.stepOrder - b.stepOrder);
@@ -73,11 +87,7 @@ export function RecipeDetailsModal({ visible, videoId, onClose }: RecipeDetailsM
 
   const renderNutrition = () => {
     if (!nutrition) {
-      return (
-        <Text style={[styles.emptyText, { color: Colors[colorScheme ?? 'light'].text }]}>
-          No nutrition information available
-        </Text>
-      );
+      return renderEmptyState();
     }
 
     const nutritionItems = [
@@ -305,6 +315,23 @@ const styles = StyleSheet.create({
     fontSize: 16,
   },
   nutritionValue: {
+    fontSize: 16,
+    fontWeight: 'bold',
+  },
+  emptyContainer: {
+    flex: 1,
+    alignItems: 'center',
+    justifyContent: 'center',
+    padding: 20,
+  },
+  generateButton: {
+    marginTop: 16,
+    paddingHorizontal: 20,
+    paddingVertical: 10,
+    borderRadius: 8,
+  },
+  generateButtonText: {
+    color: '#FFFFFF',
     fontSize: 16,
     fontWeight: 'bold',
   },

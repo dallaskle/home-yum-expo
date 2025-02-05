@@ -37,4 +37,26 @@ export class MealAPI {
       nutrition: data.nutrition || null,
     };
   }
+
+  static async generateRecipeData(videoId: string): Promise<RecipeData> {
+    const token = await this.getAuthToken();
+    const response = await fetch(`${API_URL}/videos/${videoId}/recipe/generate`, {
+      method: 'POST',
+      headers: {
+        'Authorization': `Bearer ${token}`,
+      },
+    });
+
+    if (!response.ok) {
+      throw new Error(`Failed to generate recipe data: ${response.statusText}`);
+    }
+
+    const data = await response.json();
+    return {
+      recipe: data.recipe || null,
+      recipeItems: data.recipeItems || [],
+      ingredients: data.ingredients || [],
+      nutrition: data.nutrition || null,
+    };
+  }
 } 
