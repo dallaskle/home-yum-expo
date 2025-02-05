@@ -17,24 +17,61 @@ const MEAL_PERIODS = {
 } as const;
 
 type MealPeriod = keyof typeof MEAL_PERIODS;
+type WeekTab = 'this' | 'next';
 
 export function ScheduleMealModal({ visible, videoId, onClose }: ScheduleMealModalProps) {
   const colorScheme = useColorScheme();
   const { scheduleMeal } = useScheduleStore();
-  const [selectedDay, setSelectedDay] = useState(0);
+  const [selectedDate, setSelectedDate] = useState<Date>(new Date());
   const [selectedMealPeriod, setSelectedMealPeriod] = useState<MealPeriod>('Dinner');
+  const [weekTab, setWeekTab] = useState<WeekTab>('this');
 
-  const days = ['Today', 'Tomorrow', 'Day After'];
+  const getWeekDays = (isNextWeek: boolean) => {
+    const today = new Date();
+    const days = [];
+    
+    // Get to Monday of current week
+    const currentDay = today.getDay();
+    const mondayOffset = currentDay === 0 ? -6 : 1 - currentDay; // If Sunday, go back 6 days
+    
+    // Start from Monday
+    for (let i = 0; i < 7; i++) {
+      const date = new Date();
+      const daysToAdd = mondayOffset + i + (isNextWeek ? 7 : 0);
+      date.setDate(today.getDate() + daysToAdd);
+      days.push(date);
+    }
 
-  const getDateString = (dayOffset: number) => {
-    const date = new Date();
-    date.setDate(date.getDate() + dayOffset);
-    return date.toISOString().split('T')[0];
+    return days;
+  };
+
+  const isDateSelectable = (date: Date) => {
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    date.setHours(0, 0, 0, 0);
+    return date >= today;
+  };
+
+  const formatDayLabel = (date: Date) => {
+    const dayIndex = date.getDay();
+    if (dayIndex === 0) return 'Sun';
+    if (dayIndex === 6) return 'Sat';
+    
+    const days = ['S', 'M', 'T', 'Th', 'F', 'S', 'S'];
+    return days[dayIndex];
+  };
+
+  const isDateSelected = (date: Date) => {
+    return date.toDateString() === selectedDate.toDateString();
   };
 
   const handleSchedule = async () => {
     try {
-      await scheduleMeal(videoId, getDateString(selectedDay), MEAL_PERIODS[selectedMealPeriod]);
+      await scheduleMeal(
+        videoId, 
+        selectedDate.toISOString().split('T')[0], 
+        MEAL_PERIODS[selectedMealPeriod]
+      );
       onClose();
     } catch (error) {
       console.error('Failed to schedule meal:', error);
@@ -42,35 +79,85 @@ export function ScheduleMealModal({ visible, videoId, onClose }: ScheduleMealMod
   };
 
   return (
-    <Modal
-      visible={visible}
-      transparent
-      animationType="fade"
-    >
+    <Modal visible={visible} transparent animationType="fade">
       <View style={styles.modalOverlay}>
         <View style={styles.modalContent}>
           <Text style={[styles.modalTitle, { color: Colors[colorScheme ?? 'light'].text }]}>
             Schedule Meal
           </Text>
-          
-          <View style={styles.daySelector}>
-            {days.map((day, index) => (
-              <TouchableOpacity
-                key={index}
-                style={[
-                  styles.dayButton,
-                  selectedDay === index && styles.selectedDay
-                ]}
-                onPress={() => setSelectedDay(index)}
-              >
-                <Text style={[
-                  styles.dayText,
-                  selectedDay === index && styles.selectedDayText
-                ]}>
-                  {day}
-                </Text>
-              </TouchableOpacity>
-            ))}
+
+          <View style={styles.weekTabContainer}>
+            <TouchableOpacity
+              style={[
+                styles.weekTab,
+                styles.leftTab,
+                weekTab === 'this' && styles.selectedWeekTab,
+              ]}
+              onPress={() => setWeekTab('this')}
+            >
+              <Text style={[
+                styles.weekTabText,
+                weekTab === 'this' && styles.selectedWeekTabText
+              ]}>
+                This Week
+              </Text>
+            </TouchableOpacity>
+            <TouchableOpacity
+              style={[
+                styles.weekTab,
+                styles.rightTab,
+                weekTab === 'next' && styles.selectedWeekTab,
+              ]}
+              onPress={() => setWeekTab('next')}
+            >
+              <Text style={[
+                styles.weekTabText,
+                weekTab === 'next' && styles.selectedWeekTabText
+              ]}>
+                Next Week
+              </Text>
+            </TouchableOpacity>
+          </View>
+
+          <View style={[
+            styles.calendarContainer,
+          ]}>
+            <View style={styles.weekdayRow}>
+              {getWeekDays(weekTab === 'next').slice(0, 5).map((date, index) => (
+                isDateSelectable(date) && (
+                  <TouchableOpacity
+                    key={index}
+                    style={[
+                      styles.dayButton,
+                      isDateSelected(date) && styles.selectedDay
+                    ]}
+                    onPress={() => setSelectedDate(date)}
+                  >
+                    <Text style={[styles.dayText, isDateSelected(date) && styles.selectedDayText]}>
+                      {formatDayLabel(date)}
+                    </Text>
+                  </TouchableOpacity>
+                )
+              ))}
+            </View>
+            <View style={styles.weekendRow}>
+              {getWeekDays(weekTab === 'next').slice(5).map((date, index) => (
+                isDateSelectable(date) && (
+                  <TouchableOpacity
+                    key={index}
+                    style={[
+                      styles.dayButton,
+                      isDateSelected(date) && styles.selectedDay
+                    ]}
+                    onPress={() => setSelectedDate(date)}
+                  >
+                    <Text style={[styles.dayText, isDateSelected(date) && styles.selectedDayText]}>
+                      {formatDayLabel(date)}
+                    </Text>
+                  </TouchableOpacity>
+                )
+              ))}
+            </View>
           </View>
 
           <View style={styles.timeContainer}>
@@ -87,10 +174,7 @@ export function ScheduleMealModal({ visible, videoId, onClose }: ScheduleMealMod
                   ]}
                   onPress={() => setSelectedMealPeriod(period)}
                 >
-                  <Text style={[
-                    styles.dayText,
-                    selectedMealPeriod === period && styles.selectedDayText
-                  ]}>
+                  <Text style={[styles.dayText, selectedMealPeriod === period && styles.selectedDayText]}>
                     {period}
                   </Text>
                 </TouchableOpacity>
@@ -99,16 +183,10 @@ export function ScheduleMealModal({ visible, videoId, onClose }: ScheduleMealMod
           </View>
 
           <View style={styles.buttonContainer}>
-            <TouchableOpacity
-              style={[styles.button, styles.cancelButton]}
-              onPress={onClose}
-            >
+            <TouchableOpacity style={[styles.button, styles.cancelButton]} onPress={onClose}>
               <Text style={styles.buttonText}>Cancel</Text>
             </TouchableOpacity>
-            <TouchableOpacity
-              style={[styles.button, styles.scheduleButton]}
-              onPress={handleSchedule}
-            >
+            <TouchableOpacity style={[styles.button, styles.scheduleButton]} onPress={handleSchedule}>
               <Text style={styles.buttonText}>Schedule</Text>
             </TouchableOpacity>
           </View>
@@ -139,6 +217,67 @@ const styles = StyleSheet.create({
     marginBottom: 20,
     textAlign: 'center',
   },
+  weekTabContainer: {
+    flexDirection: 'row',
+    marginBottom: 8,
+    paddingHorizontal: 4,
+  },
+  weekTab: {
+    flex: 1,
+    paddingVertical: 8,
+    paddingHorizontal: 12,
+    alignItems: 'center',
+    borderTopLeftRadius: 12,
+    borderTopRightRadius: 12,
+    marginBottom: -1,
+    zIndex: 1,
+    backgroundColor: 'transparent',
+    borderBottomWidth: 2,
+    borderBottomColor: 'transparent',
+  },
+  leftTab: {
+    marginRight: -10,
+  },
+  rightTab: {
+    marginLeft: -10,
+  },
+  selectedWeekTab: {
+    borderBottomColor: Colors.light.accent,
+    backgroundColor: 'transparent',
+    shadowColor: Colors.light.accent,
+    shadowOffset: {
+      width: 0,
+      height: 4,
+    },
+    shadowOpacity: 0.4,
+    shadowRadius: 4,
+    elevation: 5,
+  },
+  weekTabText: {
+    color: '#FFFFFF',
+    fontSize: 14,
+    fontWeight: '500',
+    opacity: 0.4,
+  },
+  selectedWeekTabText: {
+    opacity: 1,
+  },
+  calendarContainer: {
+    marginBottom: 20,
+    padding: 12,
+  },
+  weekdayRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    marginBottom: 8,
+    gap: 0,
+  },
+  weekendRow: {
+    flexDirection: 'row',
+    gap: 4,
+    justifyContent: 'center',
+    paddingHorizontal: 2,
+  },
   daySelector: {
     flexDirection: 'row',
     justifyContent: 'space-between',
@@ -146,6 +285,7 @@ const styles = StyleSheet.create({
   },
   dayButton: {
     flex: 1,
+    maxWidth: '33%',
     paddingVertical: 8,
     paddingHorizontal: 12,
     borderRadius: 20,
