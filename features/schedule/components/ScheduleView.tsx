@@ -1,8 +1,11 @@
-import React, { useEffect } from 'react';
-import { StyleSheet, View, Text, ScrollView, Image } from 'react-native';
+import React, { useEffect, useState } from 'react';
+import { StyleSheet, View, Text, ScrollView, Image, TouchableOpacity } from 'react-native';
 import { useScheduleStore } from '../store/schedule.store';
 import Colors from '@/constants/Colors';
 import { useColorScheme } from '@/components/useColorScheme';
+import { FontAwesome } from '@expo/vector-icons';
+import { RatingModal } from '@/features/ratings/components/RatingModal';
+import { useRatingsStore } from '@/features/ratings/store/ratings.store';
 
 const getMealPeriod = (time: string): string => {
   const hour = parseInt(time.split(':')[0], 10);
@@ -15,6 +18,13 @@ const getMealPeriod = (time: string): string => {
 export function ScheduleView() {
   const colorScheme = useColorScheme();
   const { scheduledMeals, initialize } = useScheduleStore();
+  const [ratingModal, setRatingModal] = useState<{
+    visible: boolean;
+    videoId: string;
+    mealId: string;
+    mealName: string;
+  } | null>(null);
+  const { getRatingForMeal } = useRatingsStore();
 
   useEffect(() => {
     initialize();
@@ -130,6 +140,21 @@ export function ScheduleView() {
                   {meal.video?.mealDescription || ''}
                 </Text>
               </View>
+              <TouchableOpacity
+                style={styles.rateButton}
+                onPress={() => setRatingModal({
+                  visible: true,
+                  videoId: meal.videoId,
+                  mealId: meal.mealId,
+                  mealName: meal.video?.mealName || 'Unnamed Meal'
+                })}
+              >
+                <FontAwesome
+                  name={getRatingForMeal(meal.videoId) ? 'star' : 'star-o'}
+                  size={20}
+                  color={Colors[colorScheme ?? 'light'].accent}
+                />
+              </TouchableOpacity>
             </View>
           ))}
         </View>
@@ -138,9 +163,21 @@ export function ScheduleView() {
   };
 
   return (
-    <ScrollView style={styles.container} contentContainerStyle={styles.contentContainer}>
-      {renderMealGroups()}
-    </ScrollView>
+    <>
+      <ScrollView style={styles.container} contentContainerStyle={styles.contentContainer}>
+        {renderMealGroups()}
+      </ScrollView>
+      
+      {ratingModal && (
+        <RatingModal
+          visible={ratingModal.visible}
+          onClose={() => setRatingModal(null)}
+          videoId={ratingModal.videoId}
+          mealId={ratingModal.mealId}
+          mealName={ratingModal.mealName}
+        />
+      )}
+    </>
   );
 }
 
@@ -208,5 +245,9 @@ const styles = StyleSheet.create({
   },
   pastText: {
     opacity: 0.7,
+  },
+  rateButton: {
+    padding: 8,
+    alignItems: 'center',
   },
 }); 

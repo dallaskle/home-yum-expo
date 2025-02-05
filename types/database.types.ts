@@ -152,6 +152,20 @@ export interface User {
     notes?: string; // Optional comments
   }
   
+  /**
+   * MealRating
+   * Stores user ratings for meals they've tried
+   */
+  export interface MealRating {
+    ratingId: string; // Primary Key
+    userId: string; // Foreign Key to User
+    videoId: string; // Foreign Key to Video
+    mealId?: string; // Optional Foreign Key to Meal (if rated from schedule)
+    rating: number; // 1-5 stars
+    comment?: string; // Optional comment
+    ratedAt: Date;
+  }
+  
   // Supabase Database Type
   export type Database = {
     public: {
@@ -200,6 +214,11 @@ export interface User {
           Row: UserTryList;
           Insert: Omit<UserTryList, 'tryListId'>;
           Update: Partial<Omit<UserTryList, 'tryListId'>>;
+        };
+        meal_ratings: {
+          Row: MealRating;
+          Insert: Omit<MealRating, 'ratingId'>;
+          Update: Partial<Omit<MealRating, 'ratingId'>>;
         };
       };
       Views: {
