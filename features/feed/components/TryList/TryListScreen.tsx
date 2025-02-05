@@ -7,9 +7,13 @@ import { useColorScheme } from '@/components/useColorScheme';
 import { FontAwesome } from '@expo/vector-icons';
 import { router } from 'expo-router';
 import { auth } from '@/config/auth';
+import { ScheduleView } from '@/features/schedule/components/ScheduleView';
+import { ScheduleMealModal } from '@/features/schedule/components/ScheduleMealModal';
 
 const { width: SCREEN_WIDTH } = Dimensions.get('window');
 const ITEM_HEIGHT = 120;
+
+type ViewMode = 'list' | 'schedule';
 
 interface TryListItemProps {
   videoId: string;
@@ -61,6 +65,7 @@ function TryListItem({ videoId, onRemove }: TryListItemProps) {
   const colorScheme = useColorScheme();
   const [video, setVideo] = useState<Video | null>(null);
   const [showConfirm, setShowConfirm] = useState(false);
+  const [showSchedule, setShowSchedule] = useState(false);
 
   useEffect(() => {
     // Fetch video details
@@ -108,16 +113,28 @@ function TryListItem({ videoId, onRemove }: TryListItemProps) {
             {video.mealDescription}
           </Text>
         </View>
-        <TouchableOpacity 
-          style={styles.removeButton}
-          onPress={handleRemovePress}
-        >
-          <FontAwesome 
-            name="times" 
-            size={20} 
-            color={Colors[colorScheme ?? 'light'].text} 
-          />
-        </TouchableOpacity>
+        <View style={styles.buttonContainer}>
+          <TouchableOpacity 
+            style={styles.scheduleButton}
+            onPress={() => setShowSchedule(true)}
+          >
+            <FontAwesome 
+              name="calendar" 
+              size={20} 
+              color={Colors[colorScheme ?? 'light'].text} 
+            />
+          </TouchableOpacity>
+          <TouchableOpacity 
+            style={styles.removeButton}
+            onPress={handleRemovePress}
+          >
+            <FontAwesome 
+              name="times" 
+              size={20} 
+              color={Colors[colorScheme ?? 'light'].text} 
+            />
+          </TouchableOpacity>
+        </View>
       </View>
       <ConfirmModal
         visible={showConfirm}
@@ -127,6 +144,11 @@ function TryListItem({ videoId, onRemove }: TryListItemProps) {
           onRemove();
         }}
         onCancel={() => setShowConfirm(false)}
+      />
+      <ScheduleMealModal
+        visible={showSchedule}
+        videoId={videoId}
+        onClose={() => setShowSchedule(false)}
       />
     </>
   );
@@ -141,12 +163,15 @@ async function getAuthToken(): Promise<string> {
 export function TryListScreen() {
   const { tryList, initialize: initializeReactions, removeFromTryList } = useReactionsStore();
   const [removedItems, setRemovedItems] = useState<Record<string, UserTryList>>({});
+  const [viewMode, setViewMode] = useState<ViewMode>('list');
+  const colorScheme = useColorScheme();
 
   useEffect(() => {
     initializeReactions();
   }, []);
 
   const tryListItems = Object.values(tryList);
+  const displayItems = tryListItems.filter(item => !removedItems[item.videoId]);
 
   const handleRemove = async (videoId: string) => {
     // Store the item before removing it
@@ -170,19 +195,50 @@ export function TryListScreen() {
     }
   };
 
-  const displayItems = tryListItems.filter(item => !removedItems[item.videoId]);
+  const renderViewToggle = () => (
+    <View style={styles.toggleContainer}>
+      <TouchableOpacity
+        style={[
+          styles.toggleButton,
+          viewMode === 'list' && styles.toggleButtonActive
+        ]}
+        onPress={() => setViewMode('list')}
+      >
+        <Text style={[
+          styles.toggleText,
+          viewMode === 'list' && styles.toggleTextActive
+        ]}>
+          List
+        </Text>
+      </TouchableOpacity>
+      <TouchableOpacity
+        style={[
+          styles.toggleButton,
+          viewMode === 'schedule' && styles.toggleButtonActive
+        ]}
+        onPress={() => setViewMode('schedule')}
+      >
+        <Text style={[
+          styles.toggleText,
+          viewMode === 'schedule' && styles.toggleTextActive
+        ]}>
+          Schedule
+        </Text>
+      </TouchableOpacity>
+    </View>
+  );
 
   if (displayItems.length === 0) {
     return (
       <View style={styles.emptyContainer}>
-        <Text style={[styles.emptyText, { color: Colors[useColorScheme() ?? 'light'].text }]}>
+        <Text style={[styles.emptyText, { color: Colors[colorScheme ?? 'light'].text }]}>
           No meals in your try list yet
         </Text>
         <TouchableOpacity 
           style={styles.browseButton}
           onPress={() => router.push('/')}
         >
-          <Text style={[styles.browseText, { color: Colors[useColorScheme() ?? 'light'].text }]}>
+          <Text style={[styles.browseText, { color: Colors[colorScheme ?? 'light'].text }]}>
             Browse Recipes
           </Text>
         </TouchableOpacity>
@@ -193,18 +249,23 @@ export function TryListScreen() {
   return (
     <View style={styles.container}>
       <Text style={styles.pageTitle}>Want to Try</Text>
-      <FlatList
-        data={displayItems}
-        renderItem={({ item }) => (
-          <TryListItem
-            videoId={item.videoId}
-            onRemove={() => handleRemove(item.videoId)}
-          />
-        )}
-        keyExtractor={(item) => item.tryListId}
-        contentContainerStyle={styles.listContent}
-        showsVerticalScrollIndicator={false}
-      />
+      {renderViewToggle()}
+      {viewMode === 'list' ? (
+        <FlatList
+          data={displayItems}
+          renderItem={({ item }) => (
+            <TryListItem
+              videoId={item.videoId}
+              onRemove={() => handleRemove(item.videoId)}
+            />
+          )}
+          keyExtractor={(item) => item.tryListId}
+          contentContainerStyle={styles.listContent}
+          showsVerticalScrollIndicator={false}
+        />
+      ) : (
+        <ScheduleView />
+      )}
     </View>
   );
 }
@@ -250,6 +311,15 @@ const styles = StyleSheet.create({
   description: {
     fontSize: 14,
     opacity: 0.8,
+  },
+  buttonContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+  },
+  scheduleButton: {
+    padding: 12,
+    justifyContent: 'center',
   },
   removeButton: {
     padding: 12,
@@ -318,5 +388,29 @@ const styles = StyleSheet.create({
     color: '#FFFFFF',
     fontSize: 16,
     fontWeight: 'bold',
+  },
+  toggleContainer: {
+    flexDirection: 'row',
+    justifyContent: 'center',
+    paddingVertical: 12,
+    gap: 8,
+  },
+  toggleButton: {
+    paddingVertical: 8,
+    paddingHorizontal: 24,
+    borderRadius: 20,
+    backgroundColor: 'rgba(255, 255, 255, 0.1)',
+  },
+  toggleButtonActive: {
+    backgroundColor: Colors.light.accent,
+  },
+  toggleText: {
+    fontSize: 16,
+    fontWeight: '500',
+    color: '#FFFFFF',
+    opacity: 0.7,
+  },
+  toggleTextActive: {
+    opacity: 1,
   },
 }); 

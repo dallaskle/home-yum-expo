@@ -34,6 +34,17 @@ export interface User {
   }
   
   /**
+   * VideoDetails
+   * A subset of Video information used in other contexts
+   */
+  export interface VideoDetails {
+    videoId: string;
+    mealName: string;
+    mealDescription: string;
+    thumbnailUrl: string;
+  }
+  
+  /**
    * Meal
    * Acts as the core scheduling table for cooking sessions.
    * Each meal record represents a planned cooking event.
@@ -47,6 +58,7 @@ export interface User {
     completed: boolean; // Indicates if the meal has been prepared/completed
     createdAt: Date;
     updatedAt: Date;
+    video?: VideoDetails; // Optional video details included when fetching meals
   }
   
   /**

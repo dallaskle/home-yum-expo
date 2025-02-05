@@ -1,0 +1,166 @@
+import React, { useEffect } from 'react';
+import { StyleSheet, View, Text, ScrollView, Image } from 'react-native';
+import { useScheduleStore } from '../store/schedule.store';
+import Colors from '@/constants/Colors';
+import { useColorScheme } from '@/components/useColorScheme';
+
+export function ScheduleView() {
+  const colorScheme = useColorScheme();
+  const { scheduledMeals, initialize } = useScheduleStore();
+
+  useEffect(() => {
+    initialize();
+  }, []);
+
+  const getDateLabel = (dateStr: string): string => {
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    
+    const date = new Date(dateStr);
+    date.setHours(0, 0, 0, 0);
+    
+    const diffDays = Math.floor((date.getTime() - today.getTime()) / (1000 * 60 * 60 * 24));
+    
+    if (diffDays === 0) return 'Today';
+    if (diffDays === 1) return 'Tomorrow';
+    
+    const diffWeeks = Math.floor(diffDays / 7);
+    if (diffWeeks === 0) return 'This Week';
+    if (diffWeeks === 1) return 'Next Week';
+    return 'Next Month';
+  };
+
+  const groupMealsByDate = () => {
+    const meals = Object.values(scheduledMeals);
+    const sortedMeals = meals.sort((a, b) => {
+      const dateCompare = a.mealDate.localeCompare(b.mealDate);
+      if (dateCompare === 0) {
+        return a.mealTime.localeCompare(b.mealTime);
+      }
+      return dateCompare;
+    });
+
+    const grouped: { [key: string]: typeof meals } = {};
+    sortedMeals.forEach(meal => {
+      const label = getDateLabel(meal.mealDate);
+      if (!grouped[label]) {
+        grouped[label] = [];
+      }
+      grouped[label].push(meal);
+    });
+
+    return grouped;
+  };
+
+  const renderMealGroups = () => {
+    const groupedMeals = groupMealsByDate();
+    const sections = ['Today', 'Tomorrow', 'This Week', 'Next Week', 'Next Month'];
+
+    if (Object.keys(groupedMeals).length === 0) {
+      return (
+        <View style={styles.emptyContainer}>
+          <Text style={[styles.emptyText, { color: Colors[colorScheme ?? 'light'].text }]}>
+            No meals scheduled
+          </Text>
+        </View>
+      );
+    }
+
+    return sections.map(section => {
+      const meals = groupedMeals[section];
+      if (!meals || meals.length === 0) return null;
+
+      return (
+        <View key={section}>
+          <Text style={[styles.sectionHeader, { color: Colors[colorScheme ?? 'light'].text }]}>
+            {section}
+          </Text>
+          {meals.map((meal) => (
+            <View key={meal.mealId} style={styles.mealItem}>
+              {meal.video?.thumbnailUrl && (
+                <Image 
+                  source={{ uri: meal.video.thumbnailUrl }}
+                  style={styles.thumbnail}
+                />
+              )}
+              <View style={styles.mealContent}>
+                <Text style={[styles.timeText, { color: Colors[colorScheme ?? 'light'].text }]}>
+                  {meal.mealTime}
+                </Text>
+                <Text style={[styles.mealTitle, { color: Colors[colorScheme ?? 'light'].text }]}>
+                  {meal.video?.mealName || 'Unnamed Meal'}
+                </Text>
+                <Text style={[styles.mealDescription, { color: Colors[colorScheme ?? 'light'].text }]}>
+                  {meal.video?.mealDescription || ''}
+                </Text>
+              </View>
+            </View>
+          ))}
+        </View>
+      );
+    });
+  };
+
+  return (
+    <ScrollView style={styles.container} contentContainerStyle={styles.contentContainer}>
+      {renderMealGroups()}
+    </ScrollView>
+  );
+}
+
+const styles = StyleSheet.create({
+  container: {
+    flex: 1,
+    backgroundColor: '#333333',
+  },
+  contentContainer: {
+    padding: 16,
+  },
+  sectionHeader: {
+    fontSize: 14,
+    fontWeight: '500',
+    marginTop: 16,
+    marginBottom: 8,
+    opacity: 0.7,
+  },
+  mealItem: {
+    flexDirection: 'row',
+    backgroundColor: 'rgba(255, 255, 255, 0.1)',
+    borderRadius: 12,
+    marginBottom: 12,
+    overflow: 'hidden',
+    height: 120,
+  },
+  thumbnail: {
+    width: 120,
+    height: 120,
+  },
+  mealContent: {
+    flex: 1,
+    padding: 12,
+    justifyContent: 'center',
+  },
+  timeText: {
+    fontSize: 14,
+    fontWeight: '500',
+    marginBottom: 4,
+  },
+  mealTitle: {
+    fontSize: 16,
+    fontWeight: 'bold',
+    marginBottom: 4,
+  },
+  mealDescription: {
+    fontSize: 14,
+    opacity: 0.7,
+  },
+  emptyContainer: {
+    padding: 20,
+    alignItems: 'center',
+  },
+  emptyText: {
+    fontSize: 16,
+    textAlign: 'center',
+    opacity: 0.7,
+  },
+}); 
