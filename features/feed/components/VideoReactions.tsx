@@ -21,17 +21,23 @@ export function VideoReactions({ videoId }: VideoReactionsProps) {
     removeFromTryList,
   } = useReactionsStore();
 
-  const currentReaction = getReactionForVideo(videoId);
+  const [optimisticReaction, setOptimisticReaction] = useState<ReactionType | null>(
+    getReactionForVideo(videoId)?.reactionType ?? null
+  );
   const [optimisticTryList, setOptimisticTryList] = useState(isInTryList(videoId));
 
   const handleReaction = async (type: ReactionType) => {
+    const previousReaction = optimisticReaction;
     try {
-      if (currentReaction?.reactionType === type) {
+      if (optimisticReaction === type) {
+        setOptimisticReaction(null);
         await removeReaction(videoId);
       } else {
+        setOptimisticReaction(type);
         await addReaction(videoId, type);
       }
     } catch (error) {
+      setOptimisticReaction(previousReaction);
       console.error('Failed to handle reaction:', error);
     }
   };
@@ -39,7 +45,6 @@ export function VideoReactions({ videoId }: VideoReactionsProps) {
   const handleTryList = async () => {
     const wasInTryList = optimisticTryList;
     try {
-      // Optimistically update the UI
       setOptimisticTryList(!wasInTryList);
       
       if (wasInTryList) {
@@ -48,7 +53,6 @@ export function VideoReactions({ videoId }: VideoReactionsProps) {
         await addToTryList(videoId);
       }
     } catch (error) {
-      // Revert the optimistic update on error
       setOptimisticTryList(wasInTryList);
       console.error('Failed to handle try list:', error);
     }
@@ -63,7 +67,7 @@ export function VideoReactions({ videoId }: VideoReactionsProps) {
         <FontAwesome
           name="thumbs-up"
           size={24}
-          color={currentReaction?.reactionType === ReactionType.LIKE
+          color={optimisticReaction === ReactionType.LIKE
             ? Colors[colorScheme ?? 'light'].accent
             : Colors[colorScheme ?? 'light'].text}
         />
@@ -76,7 +80,7 @@ export function VideoReactions({ videoId }: VideoReactionsProps) {
         <FontAwesome
           name="thumbs-down"
           size={24}
-          color={currentReaction?.reactionType === ReactionType.DISLIKE
+          color={optimisticReaction === ReactionType.DISLIKE
             ? Colors[colorScheme ?? 'light'].accent
             : Colors[colorScheme ?? 'light'].text}
         />
