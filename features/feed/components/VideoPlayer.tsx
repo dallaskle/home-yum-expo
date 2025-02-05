@@ -17,20 +17,33 @@ interface VideoPlayerProps {
 
 export function VideoPlayer({ video, isActive, onEnd }: VideoPlayerProps) {
   const videoRef = useRef<ExpoVideo>(null);
+  const backgroundVideoRef = useRef<ExpoVideo>(null);
   const colorScheme = useColorScheme();
   const [duration, setDuration] = useState(0);
   const [position, setPosition] = useState(0);
   const [showControls, setShowControls] = useState(false);
+  const [isPlaying, setIsPlaying] = useState(true);
 
   useEffect(() => {
-    if (!videoRef.current) return;
+    if (!videoRef.current || !backgroundVideoRef.current) return;
 
-    if (isActive) {
+    if (isActive && isPlaying) {
       videoRef.current.playAsync();
+      backgroundVideoRef.current.playAsync();
     } else {
       videoRef.current.pauseAsync();
+      backgroundVideoRef.current.pauseAsync();
     }
-  }, [isActive]);
+  }, [isActive, isPlaying]);
+
+  const handleBackgroundVideoUpdate = (status: AVPlaybackStatus) => {
+    if (!status.isLoaded) return;
+    
+    if (status.didJustFinish) {
+      backgroundVideoRef.current?.setPositionAsync(0);
+      backgroundVideoRef.current?.playAsync();
+    }
+  };
 
   const handlePlaybackStatusUpdate = (status: AVPlaybackStatus) => {
     if (!status.isLoaded) return;
@@ -62,12 +75,20 @@ export function VideoPlayer({ video, isActive, onEnd }: VideoPlayerProps) {
     await videoRef.current.setPositionAsync(seekPosition);
   };
 
+  const handleVideoPress = async () => {
+    if (!videoRef.current) return;
+    
+    setIsPlaying(!isPlaying);
+    setShowControls(!showControls);
+  };
+
   return (
     <View style={styles.container}>
+
       <View style={styles.videoContainer}>
         <TouchableOpacity
           style={styles.videoWrapper}
-          onPress={() => setShowControls(!showControls)}
+          onPress={handleVideoPress}
           activeOpacity={1}
         >
           <ExpoVideo
@@ -75,7 +96,7 @@ export function VideoPlayer({ video, isActive, onEnd }: VideoPlayerProps) {
             source={{ uri: video.videoUrl }}
             style={styles.video}
             resizeMode={ResizeMode.CONTAIN}
-            shouldPlay={isActive}
+            shouldPlay={isActive && isPlaying}
             isLooping={false}
             onPlaybackStatusUpdate={handlePlaybackStatusUpdate}
           />
@@ -125,9 +146,9 @@ export function VideoPlayer({ video, isActive, onEnd }: VideoPlayerProps) {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#333333',
     width: SCREEN_WIDTH,
     height: SCREEN_HEIGHT,
+    backgroundColor: '#111111',
   },
   videoContainer: {
     flex: 1,
