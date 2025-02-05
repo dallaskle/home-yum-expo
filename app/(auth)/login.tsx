@@ -4,13 +4,10 @@ import { router } from 'expo-router';
 import { useColorScheme } from '@/components/useColorScheme';
 import Colors from '@/constants/Colors';
 import { useAuthStore } from '@/features/auth/store/auth.store';
-import { BulkUploadAPI } from '@/features/feed/api/bulk-upload';
 
 export default function Login() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
-  const [isUploading, setIsUploading] = useState(false);
-  const [uploadResult, setUploadResult] = useState('');
   const colorScheme = useColorScheme();
   
   const { login, error, isLoading, isInitialized, user } = useAuthStore();
@@ -29,29 +26,6 @@ export default function Login() {
     } catch (err) {
       // Error is handled by the store
       console.error('Login failed:', err);
-    }
-  };
-
-  const handleBulkUpload = async () => {
-    try {
-      setIsUploading(true);
-      setUploadResult('');
-      
-      // Login first if not already logged in
-      if (!user) {
-        await login('dallas.klein@gauntletai.com', 'password');
-      }
-      
-      const uploadedVideos = await BulkUploadAPI.bulkUploadVideos();
-      
-      const resultMessage = `Successfully created ${uploadedVideos.length} video entries:\n\n` +
-        uploadedVideos.map(video => `- ${video.videoTitle} (${video.mealDescription})`).join('\n');
-      
-      setUploadResult(resultMessage);
-    } catch (error) {
-      setUploadResult(`Error: ${error instanceof Error ? error.message : 'Unknown error'}`);
-    } finally {
-      setIsUploading(false);
     }
   };
 
@@ -112,28 +86,6 @@ export default function Login() {
         disabled={isLoading}>
         <Text style={styles.buttonText}>{isLoading ? 'Logging in...' : 'Login'}</Text>
       </Pressable>
-
-      <Pressable
-        style={[
-          styles.button,
-          { 
-            backgroundColor: Colors[colorScheme ?? 'light'].accent,
-            opacity: isUploading ? 0.7 : 1,
-            marginTop: 10
-          }
-        ]}
-        onPress={handleBulkUpload}
-        disabled={isUploading}>
-        <Text style={styles.buttonText}>
-          {isUploading ? 'Creating entries...' : 'Create Video Entries from Supabase'}
-        </Text>
-      </Pressable>
-      
-      {uploadResult ? (
-        <Text style={[styles.result, { color: Colors[colorScheme ?? 'light'].text }]}>
-          {uploadResult}
-        </Text>
-      ) : null}
       
       <Pressable onPress={() => router.push('./signup')} disabled={isLoading}>
         <Text style={{ 
