@@ -10,6 +10,7 @@ export const API_URLS = {
 // Allowed origins
 export const ALLOWED_ORIGINS = [
   'https://home-yum-python-api.onrender.com',
+  'http://localhost:8001',
   // EAS Build environments
   'development',
   'preview',
