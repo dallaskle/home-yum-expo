@@ -1,18 +1,20 @@
 import React, { useEffect } from 'react';
 import FontAwesome from '@expo/vector-icons/FontAwesome';
 import { Link, Tabs, router } from 'expo-router';
-import { Pressable, ActivityIndicator, View } from 'react-native';
+import { Pressable, ActivityIndicator, View, Animated } from 'react-native';
 import { DarkTheme, DefaultTheme, ThemeProvider } from '@react-navigation/native';
 import { useFonts } from 'expo-font';
 import { Stack } from 'expo-router';
 import * as SplashScreen from 'expo-splash-screen';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
+import { useState, useRef } from 'react';
 
 import Colors from '@/constants/Colors';
 import { useColorScheme } from '@/components/useColorScheme';
 import { useClientOnlyValue } from '@/components/useClientOnlyValue';
 import { useAuthStore } from '@/features/auth/store/auth.store';
 import { useReactionsStore } from '@/features/feed/store/reactions.store';
+import { CreateModal } from '@/components/CreateModal';
 
 // You can explore the built-in icon families and icons on the web at https://icons.expo.fyi/
 function TabBarIcon(props: {
@@ -103,6 +105,25 @@ function RootLayoutNav() {
     },
   };
 
+  const [modalVisible, setModalVisible] = useState(false);
+  const slideAnim = useRef(new Animated.Value(1000)).current;
+
+  const showModal = () => {
+    setModalVisible(true);
+    Animated.spring(slideAnim, {
+      toValue: 0,
+      useNativeDriver: true,
+    }).start();
+  };
+
+  const hideModal = () => {
+    Animated.timing(slideAnim, {
+      toValue: 1000,
+      duration: 300,
+      useNativeDriver: true,
+    }).start(() => setModalVisible(false));
+  };
+
   return (
     <GestureHandlerRootView style={{ flex: 1, backgroundColor: '#333333' }}>
       <ThemeProvider value={customTheme}>
@@ -176,6 +197,32 @@ function RootLayoutNav() {
             }}
           />
         </Tabs>
+        
+        {/* Floating Plus Button */}
+        <Pressable
+          onPress={showModal}
+          style={{
+            position: 'absolute',
+            top: 40,
+            right: 20,
+            width: 50,
+            height: 50,
+            alignItems: 'center',
+            justifyContent: 'center',
+          }}
+        >
+          <FontAwesome
+            name="plus"
+            size={30}
+            color={Colors[colorScheme ?? 'light'].accent}
+          />
+        </Pressable>
+        
+        <CreateModal
+          visible={modalVisible}
+          onClose={hideModal}
+          slideAnim={slideAnim}
+        />
       </ThemeProvider>
     </GestureHandlerRootView>
   );
