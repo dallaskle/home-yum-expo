@@ -4,25 +4,32 @@ const black = '#000000';
 const darkGray = '#333333';
 const lightGray = '#CCCCCC';
 
+const tintColorLight = '#FF6600';
+const tintColorDark = '#FF6600';
+
 export default {
   light: {
-    text: black,
-    background: '#FFFFFF',
-    tint: primaryOrange,
-    tabIconDefault: lightGray,
-    tabIconSelected: primaryOrange,
-    accent: primaryOrange,
-    secondary: beige,
-    border: lightGray,
+    text: '#000',
+    background: '#fff',
+    tint: tintColorLight,
+    tabIconDefault: '#ccc',
+    tabIconSelected: tintColorLight,
+    accent: '#FF6600',
+    secondary: '#666666',
+    border: '#e0e0e0',
+    success: '#4CAF50',
+    error: '#f44336'
   },
   dark: {
-    text: '#FFFFFF',
-    background: black,
-    tint: primaryOrange,
-    tabIconDefault: darkGray,
-    tabIconSelected: primaryOrange,
-    accent: primaryOrange,
-    secondary: darkGray,
-    border: darkGray,
+    text: '#fff',
+    background: '#333333',
+    tint: tintColorDark,
+    tabIconDefault: '#ccc',
+    tabIconSelected: tintColorDark,
+    accent: '#FF6600',
+    secondary: '#999999',
+    border: '#666666',
+    success: '#4CAF50',
+    error: '#f44336'
   },
 };

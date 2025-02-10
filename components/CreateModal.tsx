@@ -1,7 +1,9 @@
 import React from 'react';
-import { View, TextInput, StyleSheet, Pressable, Text, Animated } from 'react-native';
+import { View, StyleSheet, Pressable, Text, Animated } from 'react-native';
 import { useColorScheme } from './useColorScheme';
 import Colors from '@/constants/Colors';
+import { CreateRecipeForm } from '@/features/create-recipe/components/CreateRecipeForm';
+import { useCreateRecipeStore } from '@/features/create-recipe/store/create-recipe.store';
 
 interface CreateModalProps {
   visible: boolean;
@@ -11,12 +13,22 @@ interface CreateModalProps {
 
 export function CreateModal({ visible, onClose, slideAnim }: CreateModalProps) {
   const colorScheme = useColorScheme();
+  const { startProcessing, reset, isProcessing } = useCreateRecipeStore();
+
+  const handleSubmit = async () => {
+    await startProcessing();
+  };
+
+  const handleClose = () => {
+    reset();
+    onClose();
+  };
 
   if (!visible) return null;
 
   return (
     <View style={styles.overlay}>
-      <Pressable style={styles.backdrop} onPress={onClose} />
+      <Pressable style={styles.backdrop} onPress={handleClose} />
       <Animated.View
         style={[
           styles.modalContainer,
@@ -51,24 +63,20 @@ export function CreateModal({ visible, onClose, slideAnim }: CreateModalProps) {
           </Text>
         </View>
 
-        <TextInput
-          style={[
-            styles.input,
-            {
-              backgroundColor: Colors[colorScheme ?? 'light'].background,
-              borderColor: Colors[colorScheme ?? 'light'].border,
-              color: Colors[colorScheme ?? 'light'].text
-            }
-          ]}
-          placeholder="Enter recipe title..."
-          placeholderTextColor={Colors[colorScheme ?? 'light'].tabIconDefault}
-        />
+        <CreateRecipeForm />
         
         <Pressable
-          style={[styles.button, { backgroundColor: Colors[colorScheme ?? 'light'].accent }]}
-          onPress={onClose}
+          style={[
+            styles.button,
+            { backgroundColor: Colors[colorScheme ?? 'light'].accent },
+            isProcessing && styles.buttonDisabled
+          ]}
+          onPress={handleSubmit}
+          disabled={isProcessing}
         >
-          <Text style={styles.buttonText}>Add Recipe</Text>
+          <Text style={styles.buttonText}>
+            {isProcessing ? 'Processing...' : 'Add Recipe'}
+          </Text>
         </Pressable>
       </Animated.View>
     </View>
@@ -107,14 +115,6 @@ const styles = StyleSheet.create({
     alignSelf: 'center',
     marginBottom: 20,
   },
-  input: {
-    width: '100%',
-    height: 50,
-    borderWidth: 1,
-    borderRadius: 8,
-    paddingHorizontal: 15,
-    marginBottom: 15,
-  },
   button: {
     width: '100%',
     height: 50,
@@ -122,6 +122,9 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
     marginTop: 10,
+  },
+  buttonDisabled: {
+    opacity: 0.5,
   },
   buttonText: {
     color: 'white',
