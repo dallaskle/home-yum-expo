@@ -13,6 +13,18 @@ interface RecipeDetailsModalProps {
   onClose: () => void;
 }
 
+const formatIngredientAmount = (amount: number | null, amountDescription: string | null): string => {
+  if (!amountDescription) return amount?.toString() || '';
+  
+  // Check if the amountDescription already includes the amount
+  const normalizedAmount = amount?.toString() || '';
+  if (amountDescription.includes(normalizedAmount)) {
+    return amountDescription;
+  }
+  
+  return `${amount} ${amountDescription}`;
+};
+
 export function RecipeDetailsModal({ visible, videoId, onClose }: RecipeDetailsModalProps) {
   const colorScheme = useColorScheme();
   const [activeTab, setActiveTab] = useState<TabType>('ingredients');
@@ -54,7 +66,7 @@ export function RecipeDetailsModal({ visible, videoId, onClose }: RecipeDetailsM
     return ingredients.map((ingredient, index) => (
       <View key={ingredient.ingredientId} style={styles.ingredientItem}>
         <Text style={[styles.ingredientText, { color: Colors[colorScheme ?? 'light'].text }]}>
-          • {ingredient.amount} {ingredient.amountDescription} {ingredient.name}
+          • {formatIngredientAmount(ingredient.amount, ingredient.amountDescription)} {ingredient.name}
         </Text>
         <Text style={[styles.nutritionSubtext, { color: Colors[colorScheme ?? 'light'].text }]}>
           {ingredient.calories} cal | {ingredient.protein}g protein | {ingredient.carbs}g carbs | {ingredient.fat}g fat
