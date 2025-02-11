@@ -54,7 +54,10 @@ export function RecipeDetailsModal({ visible, videoId, onClose }: RecipeDetailsM
     return ingredients.map((ingredient, index) => (
       <View key={ingredient.ingredientId} style={styles.ingredientItem}>
         <Text style={[styles.ingredientText, { color: Colors[colorScheme ?? 'light'].text }]}>
-          • {ingredient.quantity} {ingredient.unit} {ingredient.name}
+          • {ingredient.amount} {ingredient.amountDescription} {ingredient.name}
+        </Text>
+        <Text style={[styles.nutritionSubtext, { color: Colors[colorScheme ?? 'light'].text }]}>
+          {ingredient.calories} cal | {ingredient.protein}g protein | {ingredient.carbs}g carbs | {ingredient.fat}g fat
         </Text>
       </View>
     ));
@@ -94,22 +97,29 @@ export function RecipeDetailsModal({ visible, videoId, onClose }: RecipeDetailsM
       { label: 'Calories', value: nutrition.calories },
       { label: 'Fat', value: `${nutrition.fat}g` },
       { label: 'Protein', value: `${nutrition.protein}g` },
-      { label: 'Carbohydrates', value: `${nutrition.carbohydrates}g` },
-      { label: 'Fiber', value: nutrition.fiber ? `${nutrition.fiber}g` : undefined },
-      { label: 'Sugar', value: nutrition.sugar ? `${nutrition.sugar}g` : undefined },
-      { label: 'Sodium', value: nutrition.sodium ? `${nutrition.sodium}mg` : undefined },
-    ].filter(item => item.value !== undefined);
+      { label: 'Carbs', value: `${nutrition.carbs}g` },
+      { label: 'Fiber', value: `${nutrition.fiber}g` },
+    ];
 
-    return nutritionItems.map((item, index) => (
-      <View key={item.label} style={styles.nutritionItem}>
-        <Text style={[styles.nutritionLabel, { color: Colors[colorScheme ?? 'light'].text }]}>
-          {item.label}
-        </Text>
-        <Text style={[styles.nutritionValue, { color: Colors[colorScheme ?? 'light'].text }]}>
-          {item.value}
-        </Text>
-      </View>
-    ));
+    return (
+      <>
+        <View style={styles.nutritionSection}>
+          <Text style={[styles.sectionTitle, { color: Colors[colorScheme ?? 'light'].text }]}>
+            Total Nutrition (Serving Size: {nutrition.serving_sizes})
+          </Text>
+          {nutritionItems.map((item) => (
+            <View key={item.label} style={styles.nutritionItem}>
+              <Text style={[styles.nutritionLabel, { color: Colors[colorScheme ?? 'light'].text }]}>
+                {item.label}
+              </Text>
+              <Text style={[styles.nutritionValue, { color: Colors[colorScheme ?? 'light'].text }]}>
+                {item.value}
+              </Text>
+            </View>
+          ))}
+        </View>
+      </>
+    );
   };
 
   return (
@@ -275,11 +285,19 @@ const styles = StyleSheet.create({
     marginTop: 20,
   },
   ingredientItem: {
-    marginBottom: 12,
+    marginBottom: 16,
+    paddingBottom: 8,
+    borderBottomWidth: 1,
+    borderBottomColor: 'rgba(255, 255, 255, 0.1)',
   },
   ingredientText: {
     fontSize: 16,
     lineHeight: 24,
+  },
+  nutritionSubtext: {
+    fontSize: 12,
+    marginTop: 4,
+    opacity: 0.7,
   },
   instructionItem: {
     flexDirection: 'row',
@@ -334,5 +352,13 @@ const styles = StyleSheet.create({
     color: '#FFFFFF',
     fontSize: 16,
     fontWeight: 'bold',
+  },
+  nutritionSection: {
+    marginBottom: 24,
+  },
+  sectionTitle: {
+    fontSize: 18,
+    fontWeight: 'bold',
+    marginBottom: 12,
   },
 }); 

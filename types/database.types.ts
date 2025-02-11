@@ -93,14 +93,18 @@ export interface User {
   
   /**
    * Ingredient
-   * Lists the ingredients required for a recipe.
+   * Lists the ingredients required for a recipe with their nutritional information.
    */
   export interface Ingredient {
-    ingredientId: string; // Primary Key
-    videoId: string; // Foreign Key to Video (associates the ingredient with the recipe video)
+    ingredientId: string;
     name: string;
-    quantity: number;
-    unit: string;
+    amount: number;
+    amountDescription: string;
+    calories: number;
+    fat: number;
+    carbs: number;
+    protein: number;
+    fiber: number;
   }
   
   /**
@@ -113,11 +117,12 @@ export interface User {
     calories: number;
     fat: number;         // in grams
     protein: number;     // in grams
-    carbohydrates: number; // in grams
-    // Optional additional nutritional details:
-    fiber?: number;
-    sugar?: number;
-    sodium?: number;
+    carbs: number;       // in grams
+    fiber: number;       // in grams
+    ingredients: Ingredient[]; // List of ingredients with their nutrition info
+    serving_sizes: string;    // Serving size information
+    createdAt: string;
+    updatedAt: string;
   }
   
   /**

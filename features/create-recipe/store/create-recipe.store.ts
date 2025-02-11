@@ -1,5 +1,5 @@
 import { create } from 'zustand';
-import { createRecipeLog, getRecipeLog, pollRecipeStatus, RecipeLogResponse } from '../api/create-recipe.api';
+import { createRecipeLog, getRecipeLog, RecipeLogResponse } from '../api/create-recipe.api';
 
 interface CreateRecipeStore {
   isProcessing: boolean;
@@ -33,16 +33,6 @@ export const useCreateRecipeStore = create<CreateRecipeStore>((set, get) => ({
     try {
       const response = await createRecipeLog(videoUrl);
       set({ currentLogId: response.logId, status: response.status });
-      
-      // Start polling for status updates
-      const pollInterval = setInterval(async () => {
-        const { currentLogId, status } = get();
-        if (currentLogId && status !== 'completed' && status !== 'failed') {
-          await get().checkStatus();
-        } else {
-          clearInterval(pollInterval);
-        }
-      }, 2000);
 
     } catch (error) {
       set({ error: error instanceof Error ? error.message : 'Failed to start processing' });
@@ -56,7 +46,7 @@ export const useCreateRecipeStore = create<CreateRecipeStore>((set, get) => ({
     if (!currentLogId) return;
 
     try {
-      const response = await pollRecipeStatus(currentLogId);
+      const response = await getRecipeLog(currentLogId);
       set({ status: response.status });
       
       if (response.status === 'failed') {
