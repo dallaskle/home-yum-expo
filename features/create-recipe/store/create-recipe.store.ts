@@ -74,6 +74,7 @@ export const useCreateRecipeStore = create<CreateRecipeStore>((set, get) => ({
 
     try {
       const response = await getRecipeLog(currentLogId);
+      console.log('response', response);
       set({ 
         status: response.status,
         processingSteps: response.processingSteps

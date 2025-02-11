@@ -1,99 +1,62 @@
 import React from 'react';
-import { View, TextInput, StyleSheet, Text } from 'react-native';
+import { View, TextInput, StyleSheet, Text, Pressable } from 'react-native';
 import { useCreateRecipeStore } from '../store/create-recipe.store';
 import Colors from '@/constants/Colors';
 import { useColorScheme } from '@/components/useColorScheme';
-import * as Progress from 'react-native-progress';
-
-const STEP_LABELS = {
-  metadata_extraction: 'Extracting Video Information',
-  transcription: 'Transcribing Video',
-  video_analysis: 'Analyzing Video Content',
-  recipe_generation: 'Generating Recipe',
-  nutrition_analysis: 'Calculating Nutrition Facts'
-};
+import { ProcessingStep } from '../api/create-recipe.api';
 
 export function CreateRecipeForm() {
   const colorScheme = useColorScheme();
   const { 
     videoUrl, 
     setVideoUrl, 
-    isProcessing, 
-    error, 
-    status,
-    getCurrentStep,
-    getProgress,
-    getCompletedSteps,
-    getFailedStep
+    isProcessing,
+    error,
   } = useCreateRecipeStore();
 
-  const getStatusColor = () => {
-    switch (status) {
-      case 'completed':
-        return Colors[colorScheme ?? 'light'].success;
-      case 'failed':
-        return Colors[colorScheme ?? 'light'].error;
-      default:
-        return Colors[colorScheme ?? 'light'].text;
-    }
-  };
+  const simulateProgress = () => {
+    const mockSteps: ProcessingStep[] = [
+      { step: 'metadata_extraction', status: 'processing', success: false, timestamp: new Date().toISOString() },
+      { step: 'transcription', status: 'processing', success: false, timestamp: new Date().toISOString() },
+      { step: 'video_analysis', status: 'processing', success: false, timestamp: new Date().toISOString() },
+      { step: 'recipe_generation', status: 'processing', success: false, timestamp: new Date().toISOString() },
+      { step: 'nutrition_analysis', status: 'processing', success: false, timestamp: new Date().toISOString() }
+    ];
 
-  const renderProgressBar = () => {
-    if (!isProcessing && !status) return null;
+    // First set all steps to not started
+    mockSteps.forEach((step, index) => {
+      if (index > 0) {
+        step.status = 'failed';
+        step.success = false;
+      }
+    });
 
-    const currentStep = getCurrentStep();
-    const progress = getProgress();
-    const completedSteps = getCompletedSteps();
-    const failedStep = getFailedStep();
+    useCreateRecipeStore.setState({ 
+      isProcessing: true,
+      processingSteps: mockSteps,
+      status: 'processing'
+    });
 
-    return (
-      <View style={styles.progressContainer}>
-        <Progress.Bar
-          progress={progress / 100}
-          width={null}
-          height={8}
-          color={Colors[colorScheme ?? 'light'].accent}
-          unfilledColor={Colors[colorScheme ?? 'light'].border}
-          borderWidth={0}
-          borderRadius={4}
-          style={styles.progressBar}
-        />
-        
-        <Text style={[styles.progressText, { color: Colors[colorScheme ?? 'light'].text }]}>
-          {progress}% Complete
-        </Text>
+    let currentStep = 0;
+    const interval = setInterval(() => {
+      if (currentStep >= mockSteps.length) {
+        clearInterval(interval);
+        useCreateRecipeStore.setState({ 
+          isProcessing: false,
+          status: 'completed'
+        });
+        return;
+      }
 
-        {currentStep && (
-          <Text style={[styles.stepText, { color: Colors[colorScheme ?? 'light'].text }]}>
-            {STEP_LABELS[currentStep.step]}
-          </Text>
-        )}
+      mockSteps[currentStep].status = 'completed';
+      mockSteps[currentStep].success = true;
+      if (currentStep + 1 < mockSteps.length) {
+        mockSteps[currentStep + 1].status = 'processing';
+      }
 
-        {completedSteps.length > 0 && (
-          <View style={styles.completedStepsContainer}>
-            {completedSteps.map((step) => (
-              <View key={step.step} style={styles.completedStep}>
-                <Text style={[styles.checkmark, { color: Colors[colorScheme ?? 'light'].success }]}>
-                  ✓
-                </Text>
-                <Text style={[styles.completedStepText, { color: Colors[colorScheme ?? 'light'].success }]}>
-                  {STEP_LABELS[step.step]}
-                </Text>
-              </View>
-            ))}
-          </View>
-        )}
-
-        {failedStep && (
-          <View style={styles.failedStep}>
-            <Text style={[styles.failedStepText, { color: Colors[colorScheme ?? 'light'].error }]}>
-              Failed at: {STEP_LABELS[failedStep.step]}
-              {failedStep.error && ` - ${failedStep.error}`}
-            </Text>
-          </View>
-        )}
-      </View>
-    );
+      useCreateRecipeStore.setState({ processingSteps: [...mockSteps] });
+      currentStep++;
+    }, 2000);
   };
 
   return (
@@ -115,8 +78,6 @@ export function CreateRecipeForm() {
         autoCorrect={false}
         editable={!isProcessing}
       />
-
-      {renderProgressBar()}
 
       {error && (
         <Text style={[styles.errorText, { color: Colors[colorScheme ?? 'light'].error }]}>
@@ -140,44 +101,18 @@ const styles = StyleSheet.create({
     paddingHorizontal: 15,
     marginBottom: 15,
   },
-  progressContainer: {
-    marginTop: 10,
+  demoButton: {
+    width: '100%',
+    height: 40,
+    borderRadius: 8,
+    justifyContent: 'center',
+    alignItems: 'center',
     marginBottom: 15,
   },
-  progressBar: {
-    width: '100%',
-    marginBottom: 8,
-  },
-  progressText: {
-    fontSize: 14,
-    fontWeight: 'bold',
-    marginBottom: 4,
-  },
-  stepText: {
-    fontSize: 14,
-    marginBottom: 12,
-  },
-  completedStepsContainer: {
-    marginTop: 8,
-  },
-  completedStep: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    marginBottom: 4,
-  },
-  checkmark: {
-    fontSize: 14,
-    marginRight: 6,
-  },
-  completedStepText: {
-    fontSize: 12,
-  },
-  failedStep: {
-    marginTop: 8,
-  },
-  failedStepText: {
-    fontSize: 12,
-    fontWeight: 'bold',
+  demoButtonText: {
+    color: 'white',
+    fontSize: 16,
+    fontWeight: '500',
   },
   errorText: {
     fontSize: 14,

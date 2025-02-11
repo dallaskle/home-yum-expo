@@ -5,6 +5,7 @@ import Colors from '@/constants/Colors';
 import { CreateRecipeForm } from '@/features/create-recipe/components/CreateRecipeForm';
 import { useCreateRecipeStore } from '@/features/create-recipe/store/create-recipe.store';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
+import { ProgressTracker } from './ProgressTracker';
 
 interface CreateModalProps {
   visible: boolean;
@@ -16,7 +17,16 @@ const POLLING_INTERVAL = 2000; // 2 seconds
 
 export function CreateModal({ visible, onClose, slideAnim }: CreateModalProps) {
   const colorScheme = useColorScheme();
-  const { startProcessing, reset, isProcessing, status, progress, checkStatus, currentLogId } = useCreateRecipeStore();
+  const { 
+    startProcessing, 
+    reset, 
+    isProcessing, 
+    status, 
+    checkStatus, 
+    currentLogId,
+    processingSteps,
+    getProgress
+  } = useCreateRecipeStore();
   const successAnim = useRef(new Animated.Value(0)).current;
   const pollingInterval = useRef<NodeJS.Timeout>();
 
@@ -48,6 +58,7 @@ export function CreateModal({ visible, onClose, slideAnim }: CreateModalProps) {
     if (isProcessing && currentLogId) {
       // Start polling
       pollingInterval.current = setInterval(async () => {
+        console.log('polling');
         await checkStatus();
       }, POLLING_INTERVAL);
     }
@@ -63,7 +74,7 @@ export function CreateModal({ visible, onClose, slideAnim }: CreateModalProps) {
 
   // Stop polling when status is completed or failed
   useEffect(() => {
-    if (status === 'completed' || status === 'failed') {
+    if (status !== 'completed' && status !== 'failed') {
       if (pollingInterval.current) {
         clearInterval(pollingInterval.current);
         pollingInterval.current = undefined;
@@ -92,7 +103,7 @@ export function CreateModal({ visible, onClose, slideAnim }: CreateModalProps) {
 
   const getButtonText = () => {
     if (isProcessing) {
-      return `Processing... ${progress}%`;
+      return `Processing... ${getProgress()}%`;
     }
     if (status === 'completed') {
       return 'Recipe Added!';
@@ -138,7 +149,15 @@ export function CreateModal({ visible, onClose, slideAnim }: CreateModalProps) {
         ]}
       >
         <View style={styles.handle} />
-        
+
+        {(isProcessing || status === 'completed' || status === 'failed') ? (
+          <ProgressTracker 
+            steps={processingSteps} 
+            progress={getProgress()} 
+          />)
+
+          :
+        (<>
         <Text style={[styles.title, { color: Colors[colorScheme ?? 'light'].text }]}>
           Add a New Recipe
         </Text>
@@ -163,18 +182,7 @@ export function CreateModal({ visible, onClose, slideAnim }: CreateModalProps) {
         </View>
 
         <CreateRecipeForm />
-        
-        <Animated.View style={[styles.successOverlay, { opacity: successAnim }]}>
-          <MaterialCommunityIcons 
-            name="check-circle" 
-            size={64} 
-            color={Colors[colorScheme ?? 'light'].success} 
-          />
-          <Text style={[styles.successText, { color: Colors[colorScheme ?? 'light'].success }]}>
-            Recipe Added Successfully!
-          </Text>
-        </Animated.View>
-        
+
         <Pressable
           style={[
             styles.button,
@@ -188,6 +196,21 @@ export function CreateModal({ visible, onClose, slideAnim }: CreateModalProps) {
             {getButtonText()}
           </Text>
         </Pressable>
+        
+        </>)
+        }
+        
+        <Animated.View style={[styles.successOverlay, { opacity: successAnim }]}>
+          <MaterialCommunityIcons 
+            name="check-circle" 
+            size={64} 
+            color={Colors[colorScheme ?? 'light'].success} 
+          />
+          <Text style={[styles.successText, { color: Colors[colorScheme ?? 'light'].success }]}>
+            Recipe Added Successfully!
+          </Text>
+        </Animated.View>
+        
       </Animated.View>
     </View>
   );

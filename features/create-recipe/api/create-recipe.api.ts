@@ -111,7 +111,7 @@ export const getRecipeLog = async (logId: string): Promise<RecipeLogResponse> =>
 };
 
 // Polling functionality preserved for future use
-/*
+
 export const pollRecipeStatus = async (logId: string): Promise<RecipeLogResponse> => {
   console.log('🔄 Polling recipe status for ID:', logId);
   
@@ -141,4 +141,3 @@ export const pollRecipeStatus = async (logId: string): Promise<RecipeLogResponse
     throw error;
   }
 };
-*/ 
