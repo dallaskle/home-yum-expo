@@ -146,22 +146,27 @@ export function VideoPlayer({ video, isActive, onEnd }: VideoPlayerProps) {
               />
             </TouchableOpacity>
             <View style={styles.titleContent}>
-              <View style={styles.titleTextWrapper}>
-                <Text 
-                  style={styles.title}
-                  numberOfLines={3}
-                  ellipsizeMode="tail"
-                >
-                  {video.videoTitle}
-                </Text>
-                <Text 
-                  style={styles.description}
-                  numberOfLines={3}
-                  ellipsizeMode="tail"
-                >
-                  {video.mealName} | {video.mealDescription}
-                </Text>
-              </View>
+              <TouchableOpacity 
+                onPress={() => setShowRecipeDetails(true)}
+                activeOpacity={0.7}
+              >
+                <View style={styles.titleTextWrapper}>
+                  <Text 
+                    style={styles.title}
+                    numberOfLines={3}
+                    ellipsizeMode="tail"
+                  >
+                    {video.videoTitle}
+                  </Text>
+                  <Text 
+                    style={styles.description}
+                    numberOfLines={3}
+                    ellipsizeMode="tail"
+                  >
+                    {video.mealName} | {video.mealDescription}
+                  </Text>
+                </View>
+              </TouchableOpacity>
             </View>
           </View>
         </View>
