@@ -8,7 +8,7 @@ interface CreateRecipeStore {
   error: string | null;
   videoUrl: string;
   setVideoUrl: (url: string) => void;
-  startProcessing: () => Promise<void>;
+  startProcessing: (onSuccess?: () => void) => Promise<void>;
   reset: () => void;
   getProgress: () => number;
 }
@@ -30,7 +30,7 @@ export const useCreateRecipeStore = create<CreateRecipeStore>((set, get) => ({
 
   setVideoUrl: (url: string) => set({ videoUrl: url }),
 
-  startProcessing: async () => {
+  startProcessing: async (onSuccess?: () => void) => {
     const { videoUrl } = get();
     if (!videoUrl) {
       set({ error: 'Please enter a video URL' });
@@ -45,8 +45,13 @@ export const useCreateRecipeStore = create<CreateRecipeStore>((set, get) => ({
     });
 
     try {
-      await createRecipeLog(videoUrl);
-      // We're not waiting for the response anymore, just showing loading state
+      const response = await createRecipeLog(videoUrl);
+      set({ 
+        isProcessing: false,
+        status: 'completed',
+        processingSteps: response.processingSteps || DEFAULT_STEPS
+      });
+      onSuccess?.();
     } catch (error) {
       set({ 
         error: error instanceof Error ? error.message : 'Failed to start processing',

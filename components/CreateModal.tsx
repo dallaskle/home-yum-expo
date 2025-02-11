@@ -24,7 +24,12 @@ export function CreateModal({ visible, onClose, slideAnim }: CreateModalProps) {
   } = useCreateRecipeStore();
 
   const handleSubmit = async () => {
-    await startProcessing();
+    await startProcessing(() => {
+      // Close modal after a short delay to show success state
+      setTimeout(() => {
+        handleClose();
+      }, 1500);
+    });
   };
 
   const handleClose = () => {

@@ -47,7 +47,7 @@ export interface RecipeLogResponse {
   updatedAt: string;
 }
 
-export const createRecipeLog = async (videoUrl: string): Promise<void> => {
+export const createRecipeLog = async (videoUrl: string): Promise<RecipeLogResponse> => {
   console.log('🔵 Creating recipe log for video URL:', videoUrl);
   
   try {
@@ -71,7 +71,9 @@ export const createRecipeLog = async (videoUrl: string): Promise<void> => {
       throw new Error('Failed to create recipe log');
     }
 
+    const data = await response.json();
     console.log('✅ Recipe log created successfully');
+    return data;
   } catch (error) {
     console.error('❌ Error creating recipe log:', error);
     throw error;
