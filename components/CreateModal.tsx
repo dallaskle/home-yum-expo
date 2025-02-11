@@ -13,97 +13,28 @@ interface CreateModalProps {
   slideAnim: Animated.Value;
 }
 
-const POLLING_INTERVAL = 2000; // 2 seconds
-
 export function CreateModal({ visible, onClose, slideAnim }: CreateModalProps) {
   const colorScheme = useColorScheme();
   const { 
     startProcessing, 
     reset, 
     isProcessing, 
-    status, 
-    checkStatus, 
-    currentLogId,
+    status,
     processingSteps,
-    getProgress
   } = useCreateRecipeStore();
-  const successAnim = useRef(new Animated.Value(0)).current;
-  const pollingInterval = useRef<NodeJS.Timeout>();
-
-  // Handle success animation
-  useEffect(() => {
-    if (status === 'completed') {
-      Animated.sequence([
-        Animated.timing(successAnim, {
-          toValue: 1,
-          duration: 500,
-          useNativeDriver: true,
-        }),
-        Animated.delay(1000),
-        Animated.timing(successAnim, {
-          toValue: 0,
-          duration: 300,
-          useNativeDriver: true,
-        })
-      ]).start(() => {
-        if (status === 'completed') {
-          handleClose();
-        }
-      });
-    }
-  }, [status]);
-
-  // Handle polling
-  useEffect(() => {
-    if (isProcessing && currentLogId) {
-      // Start polling
-      pollingInterval.current = setInterval(async () => {
-        console.log('polling');
-        await checkStatus();
-      }, POLLING_INTERVAL);
-    }
-
-    // Cleanup function
-    return () => {
-      if (pollingInterval.current) {
-        clearInterval(pollingInterval.current);
-        pollingInterval.current = undefined;
-      }
-    };
-  }, [isProcessing, currentLogId]);
-
-  // Stop polling when status is completed or failed
-  useEffect(() => {
-    if (status !== 'completed' && status !== 'failed') {
-      if (pollingInterval.current) {
-        clearInterval(pollingInterval.current);
-        pollingInterval.current = undefined;
-      }
-    }
-  }, [status]);
 
   const handleSubmit = async () => {
-    // Clear any existing polling
-    if (pollingInterval.current) {
-      clearInterval(pollingInterval.current);
-      pollingInterval.current = undefined;
-    }
     await startProcessing();
   };
 
   const handleClose = () => {
-    // Clear polling on close
-    if (pollingInterval.current) {
-      clearInterval(pollingInterval.current);
-      pollingInterval.current = undefined;
-    }
     reset();
     onClose();
   };
 
   const getButtonText = () => {
     if (isProcessing) {
-      return `Processing... ${getProgress()}%`;
+      return 'Processing...';
     }
     if (status === 'completed') {
       return 'Recipe Added!';
@@ -124,16 +55,6 @@ export function CreateModal({ visible, onClose, slideAnim }: CreateModalProps) {
     return Colors[colorScheme ?? 'light'].accent;
   };
 
-  // Clean up on unmount
-  useEffect(() => {
-    return () => {
-      if (pollingInterval.current) {
-        clearInterval(pollingInterval.current);
-        pollingInterval.current = undefined;
-      }
-    };
-  }, []);
-
   if (!visible) return null;
 
   return (
@@ -150,67 +71,52 @@ export function CreateModal({ visible, onClose, slideAnim }: CreateModalProps) {
       >
         <View style={styles.handle} />
 
-        {(isProcessing || status === 'completed' || status === 'failed') ? (
+        {isProcessing ? (
           <ProgressTracker 
             steps={processingSteps} 
-            progress={getProgress()} 
-          />)
-
-          :
-        (<>
-        <Text style={[styles.title, { color: Colors[colorScheme ?? 'light'].text }]}>
-          Add a New Recipe
-        </Text>
-        
-        <Text style={[styles.description, { color: Colors[colorScheme ?? 'light'].text }]}>
-          When you add a recipe, HomeYum will:
-        </Text>
-        
-        <View style={styles.bulletPoints}>
-          <Text style={[styles.bulletPoint, { color: Colors[colorScheme ?? 'light'].text }]}>
-            • Save the video to your recipe book
-          </Text>
-          <Text style={[styles.bulletPoint, { color: Colors[colorScheme ?? 'light'].text }]}>
-            • Extract the ingredients list
-          </Text>
-          <Text style={[styles.bulletPoint, { color: Colors[colorScheme ?? 'light'].text }]}>
-            • Generate step-by-step instructions
-          </Text>
-          <Text style={[styles.bulletPoint, { color: Colors[colorScheme ?? 'light'].text }]}>
-            • Calculate nutrition information
-          </Text>
-        </View>
-
-        <CreateRecipeForm />
-
-        <Pressable
-          style={[
-            styles.button,
-            { backgroundColor: getButtonColor() },
-            isProcessing && styles.buttonDisabled
-          ]}
-          onPress={handleSubmit}
-          disabled={isProcessing}
-        >
-          <Text style={styles.buttonText}>
-            {getButtonText()}
-          </Text>
-        </Pressable>
-        
-        </>)
-        }
-        
-        <Animated.View style={[styles.successOverlay, { opacity: successAnim }]}>
-          <MaterialCommunityIcons 
-            name="check-circle" 
-            size={64} 
-            color={Colors[colorScheme ?? 'light'].success} 
           />
-          <Text style={[styles.successText, { color: Colors[colorScheme ?? 'light'].success }]}>
-            Recipe Added Successfully!
-          </Text>
-        </Animated.View>
-        
+        ) : (
+          <>
+            <Text style={[styles.title, { color: Colors[colorScheme ?? 'light'].text }]}>
+              Add a New Recipe
+            </Text>
+            
+            <Text style={[styles.description, { color: Colors[colorScheme ?? 'light'].text }]}>
+              When you add a recipe, HomeYum will:
+            </Text>
+            
+            <View style={styles.bulletPoints}>
+              <Text style={[styles.bulletPoint, { color: Colors[colorScheme ?? 'light'].text }]}>
+                • Save the video to your recipe book
+              </Text>
+              <Text style={[styles.bulletPoint, { color: Colors[colorScheme ?? 'light'].text }]}>
+                • Extract the ingredients list
+              </Text>
+              <Text style={[styles.bulletPoint, { color: Colors[colorScheme ?? 'light'].text }]}>
+                • Generate step-by-step instructions
+              </Text>
+              <Text style={[styles.bulletPoint, { color: Colors[colorScheme ?? 'light'].text }]}>
+                • Calculate nutrition information
+              </Text>
+            </View>
+
+            <CreateRecipeForm />
+
+            <Pressable
+              style={[
+                styles.button,
+                { backgroundColor: getButtonColor() },
+                isProcessing && styles.buttonDisabled
+              ]}
+              onPress={handleSubmit}
+              disabled={isProcessing}
+            >
+              <Text style={styles.buttonText}>
+                {getButtonText()}
+              </Text>
+            </Pressable>
+          </>
+        )}
       </Animated.View>
     </View>
   );
@@ -282,22 +188,5 @@ const styles = StyleSheet.create({
     fontSize: 15,
     lineHeight: 24,
     marginBottom: 4,
-  },
-  successOverlay: {
-    position: 'absolute',
-    top: 0,
-    left: 0,
-    right: 0,
-    bottom: 0,
-    backgroundColor: 'rgba(255,255,255,0.95)',
-    justifyContent: 'center',
-    alignItems: 'center',
-    borderTopLeftRadius: 20,
-    borderTopRightRadius: 20,
-  },
-  successText: {
-    fontSize: 18,
-    fontWeight: 'bold',
-    marginTop: 16,
   },
 }); 

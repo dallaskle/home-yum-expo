@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useEffect, useRef } from 'react';
 import { View, Text, StyleSheet, Animated } from 'react-native';
 import Colors from '@/constants/Colors';
 import { useColorScheme } from './useColorScheme';
@@ -11,135 +11,148 @@ const STEP_LABELS = {
   video_analysis: 'Analyzing the video',
   recipe_generation: 'Generating the recipe',
   nutrition_analysis: 'Calculating the nutrition'
-};
+} as const;
+
+type StepKey = keyof typeof STEP_LABELS;
 
 interface ProgressTrackerProps {
   steps: ProcessingStep[];
-  progress: number;
 }
 
-export function ProgressTracker({ steps, progress }: ProgressTrackerProps) {
+export function ProgressTracker({ steps }: ProgressTrackerProps) {
   const colorScheme = useColorScheme();
+  const spinAnim = useRef(new Animated.Value(0)).current;
+  const textAnims = useRef(Object.keys(STEP_LABELS).map(() => new Animated.Value(1))).current;
+  const currentStepIndex = useRef(0);
 
-  const getStepIcon = (step: ProcessingStep) => {
-    if (step.status === 'completed') {
-      return (
-        <View style={[styles.stepIcon, { backgroundColor: Colors[colorScheme ?? 'light'].success }]}>
-          <MaterialCommunityIcons name="check" size={16} color="white" />
-        </View>
-      );
-    }
-    if (step.status === 'failed') {
-      return (
-        <View style={[styles.stepIcon, { backgroundColor: Colors[colorScheme ?? 'light'].error }]}>
-          <MaterialCommunityIcons name="close" size={16} color="white" />
-        </View>
-      );
-    }
-    if (step.status === 'processing') {
-      return (
-        <View style={[styles.stepIcon, { backgroundColor: Colors[colorScheme ?? 'light'].accent }]}>
-          <MaterialCommunityIcons name="sync" size={16} color="white" />
-        </View>
-      );
-    }
-    return (
-      <View style={[styles.stepIcon, { backgroundColor: Colors[colorScheme ?? 'light'].border }]}>
-        <MaterialCommunityIcons name="circle-outline" size={16} color="white" />
-      </View>
+  useEffect(() => {
+    // Spin animation for icons
+    const spin = Animated.loop(
+      Animated.timing(spinAnim, {
+        toValue: 1,
+        duration: 2000,
+        useNativeDriver: true,
+      })
     );
-  };
+    spin.start();
+
+    // Text animation sequence
+    const animateNextStep = () => {
+      const currentAnim = textAnims[currentStepIndex.current];
+      const nextIndex = (currentStepIndex.current + 1) % textAnims.length;
+
+      Animated.sequence([
+        // Scale up current text
+        Animated.timing(currentAnim, {
+          toValue: 1.1,
+          duration: 1000,
+          useNativeDriver: true,
+        }),
+        // Scale down current text
+        Animated.timing(currentAnim, {
+          toValue: 1,
+          duration: 1000,
+          useNativeDriver: true,
+        })
+      ]).start(() => {
+        currentStepIndex.current = nextIndex;
+        animateNextStep();
+      });
+    };
+
+    animateNextStep();
+
+    return () => {
+      spin.stop();
+      textAnims.forEach(anim => anim.stopAnimation());
+    };
+  }, []);
+
+  const spin = spinAnim.interpolate({
+    inputRange: [0, 1],
+    outputRange: ['0deg', '360deg']
+  });
 
   return (
     <View style={styles.container}>
-      <View style={styles.progressBarContainer}>
-        <View 
-          style={[
-            styles.progressBar, 
-            { backgroundColor: Colors[colorScheme ?? 'light'].border }
-          ]} 
-        />
-        <Animated.View 
-          style={[
-            styles.progressBarFill, 
-            { 
-              backgroundColor: Colors[colorScheme ?? 'light'].accent,
-              height: `${progress}%`
-            }
-          ]} 
-        />
-      </View>
-
+      <Text style={[styles.title, { color: Colors[colorScheme ?? 'light'].text }]}>
+        Processing Your Recipe
+      </Text>
       <View style={styles.stepsContainer}>
-        {steps.map((step, index) => (
-          <View key={step.step} style={styles.stepContainer}>
+        {Object.keys(STEP_LABELS).map((step, index) => (
+          <View key={step} style={styles.stepContainer}>
             <View style={styles.stepIconContainer}>
-              {getStepIcon(step)}
+              <View style={[
+                styles.stepIcon, 
+                { backgroundColor: Colors[colorScheme ?? 'light'].accent }
+              ]}>
+                <Animated.View style={{ transform: [{ rotate: spin }] }}>
+                  <MaterialCommunityIcons name="sync" size={16} color="white" />
+                </Animated.View>
+              </View>
             </View>
             <View style={styles.stepContent}>
-              <Text 
+              <Animated.View 
                 style={[
-                  styles.stepLabel, 
-                  { color: Colors[colorScheme ?? 'light'].text }
+                  styles.stepLabelContainer,
+                  {
+                    transform: [
+                      { scale: textAnims[index] },
+                      { translateX: textAnims[index].interpolate({
+                        inputRange: [1, 1.1],
+                        outputRange: [0, 10]
+                      })}
+                    ]
+                  }
                 ]}
               >
-                {STEP_LABELS[step.step]}
-              </Text>
-              {step.error && (
                 <Text 
                   style={[
-                    styles.errorText, 
-                    { color: Colors[colorScheme ?? 'light'].error }
+                    styles.stepLabel, 
+                    { color: Colors[colorScheme ?? 'light'].text }
                   ]}
                 >
-                  {step.error}
+                  {STEP_LABELS[step as StepKey]}
                 </Text>
-              )}
+              </Animated.View>
             </View>
           </View>
         ))}
       </View>
+      <Text style={[styles.subtitle, { color: Colors[colorScheme ?? 'light'].text }]}>
+        This may take a minute or two... but you're free to go
+      </Text>
     </View>
   );
 }
 
 const styles = StyleSheet.create({
   container: {
-    flexDirection: 'row',
     paddingVertical: 20,
     position: 'relative',
+    alignItems: 'center',
   },
-  progressBarContainer: {
-    width: 4,
-    marginRight: 20,
-    marginLeft: 18,
-    height: '100%',
-    position: 'relative',
+  title: {
+    fontSize: 20,
+    fontWeight: 'bold',
+    marginBottom: 24,
   },
-  progressBar: {
-    width: '100%',
-    height: '100%',
-    position: 'absolute',
-    borderRadius: 2,
-  },
-  progressBarFill: {
-    width: '100%',
-    position: 'absolute',
-    bottom: 0,
-    borderRadius: 2,
+  subtitle: {
+    fontSize: 14,
+    marginTop: 24,
+    opacity: 0.7,
   },
   stepsContainer: {
-    flex: 1,
+    width: '100%',
+    paddingHorizontal: 20,
   },
   stepContainer: {
     flexDirection: 'row',
-    marginBottom: 30,
-    alignItems: 'flex-start',
+    marginBottom: 24,
+    alignItems: 'center',
   },
   stepIconContainer: {
-    position: 'absolute',
-    left: -38,
-    zIndex: 1,
+    marginRight: 15,
   },
   stepIcon: {
     width: 32,
@@ -150,15 +163,12 @@ const styles = StyleSheet.create({
   },
   stepContent: {
     flex: 1,
-    paddingRight: 20,
+  },
+  stepLabelContainer: {
+    alignSelf: 'flex-start',
   },
   stepLabel: {
     fontSize: 16,
     fontWeight: '500',
-    marginBottom: 4,
-  },
-  errorText: {
-    fontSize: 14,
-    marginTop: 4,
   },
 }); 
