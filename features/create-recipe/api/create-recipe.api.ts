@@ -4,12 +4,45 @@ import { API_URLS } from '@/config/urls';
 
 const API_URL = API_URLS.base;
 
+export interface ProcessingStep {
+  status: 'completed' | 'failed' | 'processing';
+  step: 'metadata_extraction' | 'transcription' | 'video_analysis' | 'recipe_generation' | 'nutrition_analysis';
+  success: boolean;
+  timestamp: string;
+  error?: string | null;
+}
+
 export interface RecipeLogResponse {
   logId: string;
   userId: string;
   videoUrl: string;
   status: string;
-  logMessage?: string;
+  processingSteps: ProcessingStep[];
+  metadata?: {
+    title: string;
+    description: string;
+    duration: number;
+    thumbnail: string;
+    platform: string;
+  };
+  transcription?: {
+    text: string;
+    success: boolean;
+    error?: string;
+  };
+  analysis?: {
+    recipe: string;
+    success: boolean;
+    error?: string;
+  };
+  nutrition?: {
+    calories: number;
+    protein: number;
+    carbs: number;
+    fat: number;
+    success: boolean;
+    error?: string;
+  };
   createdAt: string;
   updatedAt: string;
 }

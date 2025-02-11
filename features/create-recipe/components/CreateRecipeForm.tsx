@@ -1,12 +1,31 @@
 import React from 'react';
-import { View, TextInput, StyleSheet, Text, ActivityIndicator } from 'react-native';
+import { View, TextInput, StyleSheet, Text } from 'react-native';
 import { useCreateRecipeStore } from '../store/create-recipe.store';
 import Colors from '@/constants/Colors';
 import { useColorScheme } from '@/components/useColorScheme';
+import * as Progress from 'react-native-progress';
+
+const STEP_LABELS = {
+  metadata_extraction: 'Extracting Video Information',
+  transcription: 'Transcribing Video',
+  video_analysis: 'Analyzing Video Content',
+  recipe_generation: 'Generating Recipe',
+  nutrition_analysis: 'Calculating Nutrition Facts'
+};
 
 export function CreateRecipeForm() {
   const colorScheme = useColorScheme();
-  const { videoUrl, setVideoUrl, isProcessing, error, status } = useCreateRecipeStore();
+  const { 
+    videoUrl, 
+    setVideoUrl, 
+    isProcessing, 
+    error, 
+    status,
+    getCurrentStep,
+    getProgress,
+    getCompletedSteps,
+    getFailedStep
+  } = useCreateRecipeStore();
 
   const getStatusColor = () => {
     switch (status) {
@@ -17,6 +36,64 @@ export function CreateRecipeForm() {
       default:
         return Colors[colorScheme ?? 'light'].text;
     }
+  };
+
+  const renderProgressBar = () => {
+    if (!isProcessing && !status) return null;
+
+    const currentStep = getCurrentStep();
+    const progress = getProgress();
+    const completedSteps = getCompletedSteps();
+    const failedStep = getFailedStep();
+
+    return (
+      <View style={styles.progressContainer}>
+        <Progress.Bar
+          progress={progress / 100}
+          width={null}
+          height={8}
+          color={Colors[colorScheme ?? 'light'].accent}
+          unfilledColor={Colors[colorScheme ?? 'light'].border}
+          borderWidth={0}
+          borderRadius={4}
+          style={styles.progressBar}
+        />
+        
+        <Text style={[styles.progressText, { color: Colors[colorScheme ?? 'light'].text }]}>
+          {progress}% Complete
+        </Text>
+
+        {currentStep && (
+          <Text style={[styles.stepText, { color: Colors[colorScheme ?? 'light'].text }]}>
+            {STEP_LABELS[currentStep.step]}
+          </Text>
+        )}
+
+        {completedSteps.length > 0 && (
+          <View style={styles.completedStepsContainer}>
+            {completedSteps.map((step) => (
+              <View key={step.step} style={styles.completedStep}>
+                <Text style={[styles.checkmark, { color: Colors[colorScheme ?? 'light'].success }]}>
+                  ✓
+                </Text>
+                <Text style={[styles.completedStepText, { color: Colors[colorScheme ?? 'light'].success }]}>
+                  {STEP_LABELS[step.step]}
+                </Text>
+              </View>
+            ))}
+          </View>
+        )}
+
+        {failedStep && (
+          <View style={styles.failedStep}>
+            <Text style={[styles.failedStepText, { color: Colors[colorScheme ?? 'light'].error }]}>
+              Failed at: {STEP_LABELS[failedStep.step]}
+              {failedStep.error && ` - ${failedStep.error}`}
+            </Text>
+          </View>
+        )}
+      </View>
+    );
   };
 
   return (
@@ -39,20 +116,7 @@ export function CreateRecipeForm() {
         editable={!isProcessing}
       />
 
-      {isProcessing && (
-        <View style={styles.statusContainer}>
-          <ActivityIndicator color={Colors[colorScheme ?? 'light'].accent} />
-          <Text style={[styles.statusText, { color: getStatusColor() }]}>
-            Processing your recipe...
-          </Text>
-        </View>
-      )}
-
-      {status && !isProcessing && (
-        <Text style={[styles.statusText, { color: getStatusColor() }]}>
-          Status: {status}
-        </Text>
-      )}
+      {renderProgressBar()}
 
       {error && (
         <Text style={[styles.errorText, { color: Colors[colorScheme ?? 'light'].error }]}>
@@ -76,14 +140,44 @@ const styles = StyleSheet.create({
     paddingHorizontal: 15,
     marginBottom: 15,
   },
-  statusContainer: {
+  progressContainer: {
+    marginTop: 10,
+    marginBottom: 15,
+  },
+  progressBar: {
+    width: '100%',
+    marginBottom: 8,
+  },
+  progressText: {
+    fontSize: 14,
+    fontWeight: 'bold',
+    marginBottom: 4,
+  },
+  stepText: {
+    fontSize: 14,
+    marginBottom: 12,
+  },
+  completedStepsContainer: {
+    marginTop: 8,
+  },
+  completedStep: {
     flexDirection: 'row',
     alignItems: 'center',
-    marginBottom: 10,
+    marginBottom: 4,
   },
-  statusText: {
-    marginLeft: 10,
+  checkmark: {
     fontSize: 14,
+    marginRight: 6,
+  },
+  completedStepText: {
+    fontSize: 12,
+  },
+  failedStep: {
+    marginTop: 8,
+  },
+  failedStepText: {
+    fontSize: 12,
+    fontWeight: 'bold',
   },
   errorText: {
     fontSize: 14,
