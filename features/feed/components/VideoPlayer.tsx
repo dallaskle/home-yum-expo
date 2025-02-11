@@ -146,12 +146,22 @@ export function VideoPlayer({ video, isActive, onEnd }: VideoPlayerProps) {
               />
             </TouchableOpacity>
             <View style={styles.titleContent}>
-              <Text style={[styles.title, { color: '#FFFFFF' }]}>
-                {video.videoTitle}
-              </Text>
-              <Text style={[styles.description, { color: '#FFFFFF' }]}>
-                {video.mealName} | {video.mealDescription}
-              </Text>
+              <View style={styles.titleTextWrapper}>
+                <Text 
+                  style={styles.title}
+                  numberOfLines={3}
+                  ellipsizeMode="tail"
+                >
+                  {video.videoTitle}
+                </Text>
+                <Text 
+                  style={styles.description}
+                  numberOfLines={3}
+                  ellipsizeMode="tail"
+                >
+                  {video.mealName} | {video.mealDescription}
+                </Text>
+              </View>
             </View>
           </View>
         </View>
@@ -239,6 +249,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 20,
     paddingTop: 20,
     paddingBottom: 5,
+    paddingRight: 32,
   },
   titleRow: {
     flexDirection: 'row',
@@ -250,6 +261,15 @@ const styles = StyleSheet.create({
   },
   titleContent: {
     flex: 1,
+    maxWidth: '80%',
+  },
+  titleTextWrapper: {
+    backgroundColor: 'rgba(0, 0, 0, 0.4)',
+    borderRadius: 8,
+    paddingHorizontal: 8,
+    paddingVertical: 4,
+    marginBottom: -4,
+    marginHorizontal: -8,
   },
   title: {
     fontSize: 16,
@@ -258,6 +278,7 @@ const styles = StyleSheet.create({
     textShadowColor: 'rgba(51, 51, 51, 0.75)',
     textShadowOffset: { width: 0, height: 1 },
     textShadowRadius: 3,
+    color: '#FFFFFF',
   },
   description: {
     fontSize: 12,
@@ -265,5 +286,6 @@ const styles = StyleSheet.create({
     textShadowColor: 'rgba(51, 51, 51, 0.75)',
     textShadowOffset: { width: 0, height: 1 },
     textShadowRadius: 3,
+    color: '#FFFFFF',
   },
 }); 
