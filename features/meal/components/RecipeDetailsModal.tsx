@@ -105,19 +105,20 @@ export function RecipeDetailsModal({ visible, videoId, onClose }: RecipeDetailsM
       return renderEmptyState();
     }
 
+    const servingSize = Number(nutrition.serving_sizes);
     const nutritionItems = [
-      { label: 'Calories', value: nutrition.calories },
-      { label: 'Fat', value: `${nutrition.fat}g` },
-      { label: 'Protein', value: `${nutrition.protein}g` },
-      { label: 'Carbs', value: `${nutrition.carbs}g` },
-      { label: 'Fiber', value: `${nutrition.fiber}g` },
+      { label: 'Calories', value: (nutrition.calories / servingSize).toFixed(0) },
+      { label: 'Fat', value: `${(nutrition.fat / servingSize).toFixed(0)}g` },
+      { label: 'Protein', value: `${(nutrition.protein / servingSize).toFixed(0)}g` },
+      { label: 'Carbs', value: `${(nutrition.carbs / servingSize).toFixed(0)}g` },
+      { label: 'Fiber', value: `${(nutrition.fiber / servingSize).toFixed(0)}g` },
     ];
 
     return (
       <>
         <View style={styles.nutritionSection}>
           <Text style={[styles.sectionTitle, { color: Colors[colorScheme ?? 'light'].text }]}>
-            Total Nutrition (Serving Size: {nutrition.serving_sizes})
+            Nutrition (per serving)
           </Text>
           {nutritionItems.map((item) => (
             <View key={item.label} style={styles.nutritionItem}>
