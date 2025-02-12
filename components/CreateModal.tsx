@@ -106,7 +106,7 @@ export function CreateModal({ visible, onClose, slideAnim }: CreateModalProps) {
             backgroundColor: Colors[colorScheme ?? 'light'].background,
             transform: [
               { translateY: slideAnim },
-              { translateY: Animated.multiply(keyboardHeight, -0.5) }
+              { translateY: Animated.multiply(keyboardHeight,0) }
             ]
           }
         ]}
