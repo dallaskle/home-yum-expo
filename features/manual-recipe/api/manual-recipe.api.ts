@@ -5,6 +5,13 @@ import { API_URLS } from '@/config/urls';
 
 const API_URL = API_URLS.base;
 
+export interface ProcessingStep {
+  step: string;
+  status: 'pending' | 'processing' | 'completed' | 'failed';
+  success: boolean;
+  timestamp: string;
+}
+
 export const manualRecipeApi = {
   generateRecipe: async (prompt: string): Promise<ManualRecipeResponse> => {
     console.log('🔵 Generating manual recipe for prompt:', prompt);

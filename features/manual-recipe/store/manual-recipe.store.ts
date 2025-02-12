@@ -2,11 +2,6 @@ import { create } from 'zustand';
 import { ManualRecipeResponse } from '@/types/database.types';
 import { manualRecipeApi } from '../api/manual-recipe.api';
 
-interface ProcessingStep {
-  step: string;
-  status: 'pending' | 'completed' | 'failed';
-}
-
 interface ManualRecipeStore {
   isProcessing: boolean;
   status: 'idle' | 'processing' | 'completed' | 'failed';
