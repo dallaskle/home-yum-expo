@@ -5,10 +5,12 @@ import Colors from '@/constants/Colors';
 import { useColorScheme } from '@/components/useColorScheme';
 import Animated, { FadeIn, FadeOut } from 'react-native-reanimated';
 import { ProgressTracker } from '@/components/ProgressTracker';
+import { useFeedStore } from '@/features/feed/store/feed.store';
 
 export function CreateManualRecipeForm() {
   const colorScheme = useColorScheme();
   const [prompt, setPrompt] = React.useState('');
+  const { addVideoToFeed } = useFeedStore();
   const { 
     isProcessing,
     status,
@@ -27,7 +29,10 @@ export function CreateManualRecipeForm() {
   };
 
   const handleConfirm = async () => {
-    await confirmRecipe();
+    const result = await confirmRecipe();
+    if (result?.video) {
+      await addVideoToFeed(result.video.videoId);
+    }
   };
 
   if (isProcessing) {

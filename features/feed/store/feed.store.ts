@@ -65,7 +65,9 @@ export const useFeedStore = create<FeedState>()((set, get) => ({
   addVideoToFeed: async (videoId: string) => {
     try {
       const { videos, currentVideoIndex } = get();
+      console.log('Adding video to feed:', videoId);
       const video = await FeedAPI.getVideo(videoId);
+      console.log('Video added to feed:', video);
       
       // Create new array with video inserted at current index
       const newVideos = [

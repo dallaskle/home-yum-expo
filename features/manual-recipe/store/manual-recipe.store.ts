@@ -10,7 +10,7 @@ interface ManualRecipeStore {
   recipeData: ManualRecipeResponse | null;
   error: string | null;
   startProcessing: (prompt: string) => Promise<void>;
-  confirmRecipe: () => Promise<void>;
+  confirmRecipe: () => Promise<ManualRecipeResponse>;
   reset: () => void;
 }
 
@@ -68,7 +68,7 @@ export const useManualRecipeStore = create<ManualRecipeStore>((set, get) => ({
       set({
         error: 'No recipe data available to confirm'
       });
-      return;
+      return recipeData as ManualRecipeResponse;
     }
 
     set({
@@ -79,12 +79,16 @@ export const useManualRecipeStore = create<ManualRecipeStore>((set, get) => ({
 
     try {
       const response = await manualRecipeApi.confirmRecipe(recipeData.logId);
+      console.log('Recipe confirmed:', response);
+      
       set({
         isProcessing: false,
         status: 'completed',
         recipeData: response,
         error: null
       });
+
+      return response;
     } catch (error) {
       // On error, revert to previous status instead of keeping 'processing'
       const errorMessage = error instanceof Error ? error.message : 'Failed to confirm recipe';
@@ -99,6 +103,8 @@ export const useManualRecipeStore = create<ManualRecipeStore>((set, get) => ({
           ? 'Unable to create recipe video at this time. Our team has been notified and is working on a fix.'
           : errorMessage
       });
+
+      return recipeData as ManualRecipeResponse;
     }
   },
 

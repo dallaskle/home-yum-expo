@@ -228,6 +228,7 @@ export interface User {
     recipe: ManualRecipeData;
     mealImage: ManualRecipeImage;
     status: 'initial_generated' | 'updated' | 'completed';
+    video?: Video; // Full video object returned after confirmation
   }
   
   // Supabase Database Type
