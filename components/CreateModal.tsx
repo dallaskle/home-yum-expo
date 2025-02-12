@@ -13,7 +13,7 @@ interface CreateModalProps {
 
 export function CreateModal({ visible, onClose, slideAnim }: CreateModalProps) {
   const colorScheme = useColorScheme();
-  const { reset } = useCreateRecipeStore();
+  const { reset, status } = useCreateRecipeStore();
   const keyboardHeight = useRef(new Animated.Value(0)).current;
   
   useEffect(() => {
@@ -46,7 +46,16 @@ export function CreateModal({ visible, onClose, slideAnim }: CreateModalProps) {
   }, []);
 
   const handleClose = () => {
-    reset();
+    if (status === 'completed') {
+      reset();
+      useCreateRecipeStore.setState({
+        videoUrl: '',
+        isProcessing: false,
+        error: null,
+        status: 'idle',
+        processingSteps: []
+      });
+    }
     onClose();
   };
 
