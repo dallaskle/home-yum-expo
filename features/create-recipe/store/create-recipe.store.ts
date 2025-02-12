@@ -1,6 +1,8 @@
 import { create } from 'zustand';
 import { createRecipeLog, ProcessingStep } from '../api/create-recipe.api';
 import { useFeedStore } from '@/features/feed/store/feed.store';
+import { Alert } from 'react-native';
+import { router } from 'expo-router';
 
 interface CreateRecipeStore {
   isProcessing: boolean;
@@ -11,6 +13,7 @@ interface CreateRecipeStore {
   setVideoUrl: (url: string) => void;
   startProcessing: (onSuccess?: () => void) => Promise<void>;
   reset: () => void;
+  fullReset: () => void;
   getProgress: () => number;
 }
 
@@ -56,6 +59,24 @@ export const useCreateRecipeStore = create<CreateRecipeStore>((set, get) => ({
       // Add the new video to the feed using videoId instead of logId
       if (response.videoId) {
         await useFeedStore.getState().addVideoToFeed(response.videoId);
+        
+        // Show success alert with option to view in feed
+        Alert.alert(
+          'Recipe Added!',
+          'Your recipe has been successfully added to your feed.',
+          [
+            {
+              text: 'View in Feed',
+              onPress: () => {
+                router.push('/');  // Navigate to root which is the feed tab
+              },
+            },
+            {
+              text: 'OK',
+              style: 'cancel',
+            },
+          ],
+        );
       } else {
         console.error('No videoId in response:', response);
       }
@@ -70,7 +91,18 @@ export const useCreateRecipeStore = create<CreateRecipeStore>((set, get) => ({
     }
   },
 
-  reset: () => set({
+  reset: () => {
+    const { isProcessing, status, processingSteps } = get();
+    set({
+      videoUrl: '',
+      error: null,
+      isProcessing,
+      status,
+      processingSteps
+    });
+  },
+
+  fullReset: () => set({
     isProcessing: false,
     status: '',
     processingSteps: [],
