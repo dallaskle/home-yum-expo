@@ -15,6 +15,7 @@ export interface ProcessingStep {
 export interface RecipeLogResponse {
   logId: string;
   userId: string;
+  videoId: string;
   videoUrl: string;
   status: string;
   processingSteps: ProcessingStep[];

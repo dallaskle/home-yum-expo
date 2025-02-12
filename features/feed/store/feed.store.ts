@@ -11,6 +11,7 @@ interface FeedState {
   hasMore: boolean;
   loadFeed: (reset?: boolean) => Promise<void>;
   setCurrentVideoIndex: (index: number) => void;
+  addVideoToFeed: (videoId: string) => Promise<void>;
 }
 
 export const useFeedStore = create<FeedState>()((set, get) => ({
@@ -58,6 +59,28 @@ export const useFeedStore = create<FeedState>()((set, get) => ({
     // Preload more videos when we're near the end
     if (index >= videos.length - 3) {
       loadFeed();
+    }
+  },
+
+  addVideoToFeed: async (videoId: string) => {
+    try {
+      const { videos, currentVideoIndex } = get();
+      const video = await FeedAPI.getVideo(videoId);
+      
+      // Create new array with video inserted at current index
+      const newVideos = [
+        ...videos.slice(0, currentVideoIndex),
+        video,
+        ...videos.slice(currentVideoIndex)
+      ];
+      
+      set({
+        videos: newVideos,
+        // Keep the same index since we inserted at that position
+        currentVideoIndex: currentVideoIndex
+      });
+    } catch (error) {
+      console.error('Failed to add video to feed:', error);
     }
   },
 })); 

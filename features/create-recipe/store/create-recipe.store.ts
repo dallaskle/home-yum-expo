@@ -1,5 +1,6 @@
 import { create } from 'zustand';
 import { createRecipeLog, ProcessingStep } from '../api/create-recipe.api';
+import { useFeedStore } from '@/features/feed/store/feed.store';
 
 interface CreateRecipeStore {
   isProcessing: boolean;
@@ -51,6 +52,14 @@ export const useCreateRecipeStore = create<CreateRecipeStore>((set, get) => ({
         status: 'completed',
         processingSteps: response.processingSteps || DEFAULT_STEPS
       });
+      
+      // Add the new video to the feed using videoId instead of logId
+      if (response.videoId) {
+        await useFeedStore.getState().addVideoToFeed(response.videoId);
+      } else {
+        console.error('No videoId in response:', response);
+      }
+      
       onSuccess?.();
     } catch (error) {
       set({ 
