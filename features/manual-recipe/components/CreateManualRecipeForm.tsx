@@ -15,13 +15,19 @@ export function CreateManualRecipeForm() {
     currentStep,
     processingSteps,
     recipeData,
-    startProcessing
+    error,
+    startProcessing,
+    confirmRecipe
   } = useManualRecipeStore();
 
   const handleSubmit = async () => {
     if (prompt.trim()) {
       await startProcessing(prompt.trim());
     }
+  };
+
+  const handleConfirm = async () => {
+    await confirmRecipe();
   };
 
   if (isProcessing) {
@@ -33,7 +39,9 @@ export function CreateManualRecipeForm() {
           exiting={FadeOut}
           style={[styles.loadingText, { color: Colors[colorScheme ?? 'light'].text }]}
         >
-          {processingSteps[currentStep]}...
+          {status === 'processing' && recipeData?.status === 'initial_generated' 
+            ? 'Confirming recipe and generating assets...'
+            : `${processingSteps[currentStep]}...`}
         </Animated.Text>
       </View>
     );
@@ -106,6 +114,33 @@ export function CreateManualRecipeForm() {
             ))}
           </>
         )}
+
+        <View style={styles.confirmButtonContainer}>
+          {error && (
+            <Text style={[styles.errorText, { color: Colors[colorScheme ?? 'light'].error }]}>
+              {error}
+            </Text>
+          )}
+          <Pressable
+            style={[
+              styles.confirmButton,
+              {
+                backgroundColor: Colors[colorScheme ?? 'light'].accent,
+                opacity: recipeData.status === 'completed' ? 0.5 : 1
+              }
+            ]}
+            onPress={handleConfirm}
+            disabled={recipeData.status === 'completed' || isProcessing}
+          >
+            <Text style={styles.confirmButtonText}>
+              {recipeData.status === 'completed' 
+                ? 'Recipe Confirmed' 
+                : isProcessing 
+                  ? 'Confirming...' 
+                  : 'Confirm Recipe'}
+            </Text>
+          </Pressable>
+        </View>
       </ScrollView>
     );
   }
@@ -222,5 +257,25 @@ const styles = StyleSheet.create({
     fontSize: 16,
     marginBottom: 4,
     fontStyle: 'italic',
+  },
+  confirmButtonContainer: {
+    padding: 16,
+    paddingBottom: 32,
+  },
+  confirmButton: {
+    borderRadius: 8,
+    padding: 16,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  confirmButtonText: {
+    color: 'white',
+    fontSize: 16,
+    fontWeight: '600',
+  },
+  errorText: {
+    color: 'red',
+    marginBottom: 16,
+    fontSize: 14,
   },
 });
