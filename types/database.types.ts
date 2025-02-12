@@ -174,6 +174,62 @@ export interface User {
     video?: Video;
   }
   
+  /**
+   * ManualRecipeIngredient
+   * Represents an ingredient in a manual recipe
+   */
+  export interface ManualRecipeIngredient {
+    name: string;
+    amount: number;
+    amountDescription: string;
+  }
+  
+  /**
+   * ManualRecipeInstruction
+   * Represents a step in the recipe instructions
+   */
+  export interface ManualRecipeInstruction {
+    step: number;
+    text: string;
+  }
+  
+  /**
+   * ManualRecipeData
+   * The recipe data returned from the recipe generator
+   */
+  export interface ManualRecipeData {
+    success: boolean;
+    title: string;
+    description: string;
+    servings: string;
+    prepTime: string;
+    cookTime: string;
+    ingredients: ManualRecipeIngredient[];
+    instructions: ManualRecipeInstruction[];
+    tips: string[];
+  }
+  
+  /**
+   * ManualRecipeImage
+   * The image data returned from the image generator
+   */
+  export interface ManualRecipeImage {
+    success: boolean;
+    url: string;
+    prompt: string;
+  }
+  
+  /**
+   * ManualRecipeResponse
+   * The complete response from the manual recipe generation endpoint
+   */
+  export interface ManualRecipeResponse {
+    logId: string;
+    recipe: ManualRecipeData;
+    mealImage: ManualRecipeImage;
+    status: 'initial_generated' | 'updated' | 'completed';
+  }
+  
   // Supabase Database Type
   export type Database = {
     public: {
