@@ -1,7 +1,7 @@
 import { create } from 'zustand';
 import { createRecipeLog, ProcessingStep } from '../api/create-recipe.api';
 import { useFeedStore } from '@/features/feed/store/feed.store';
-import { Alert } from 'react-native';
+import Toast from 'react-native-toast-message';
 import { router } from 'expo-router';
 
 interface CreateRecipeStore {
@@ -60,23 +60,20 @@ export const useCreateRecipeStore = create<CreateRecipeStore>((set, get) => ({
       if (response.videoId) {
         await useFeedStore.getState().addVideoToFeed(response.videoId);
         
-        // Show success alert with option to view in feed
-        Alert.alert(
-          'Recipe Added!',
-          'Your recipe has been successfully added to your feed.',
-          [
-            {
-              text: 'View in Feed',
-              onPress: () => {
-                router.push('/');  // Navigate to root which is the feed tab
-              },
-            },
-            {
-              text: 'OK',
-              style: 'cancel',
-            },
-          ],
-        );
+        // Show toast message with action button
+        Toast.show({
+          type: 'success',
+          text1: 'Recipe Added!',
+          text2: 'Your recipe has been successfully added to your feed',
+          position: 'bottom',
+          visibilityTime: 4000,
+          autoHide: true,
+          topOffset: 40,
+          bottomOffset: 40,
+          onPress: () => {
+            router.push('/');  // Navigate to feed when toast is pressed
+          }
+        });
       } else {
         console.error('No videoId in response:', response);
       }
@@ -87,6 +84,18 @@ export const useCreateRecipeStore = create<CreateRecipeStore>((set, get) => ({
         error: error instanceof Error ? error.message : 'Failed to start processing',
         isProcessing: false,
         status: 'failed'
+      });
+      
+      // Show error toast
+      Toast.show({
+        type: 'error',
+        text1: 'Failed to Add Recipe',
+        text2: error instanceof Error ? error.message : 'Something went wrong',
+        position: 'bottom',
+        visibilityTime: 4000,
+        autoHide: true,
+        topOffset: 40,
+        bottomOffset: 40
       });
     }
   },

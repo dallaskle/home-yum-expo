@@ -1,15 +1,19 @@
+import React, { useEffect } from 'react';
 import FontAwesome from '@expo/vector-icons/FontAwesome';
 import { DarkTheme, DefaultTheme, ThemeProvider } from '@react-navigation/native';
 import { useFonts } from 'expo-font';
 import { Stack } from 'expo-router';
 import * as SplashScreen from 'expo-splash-screen';
-import { useEffect } from 'react';
 import { View, ActivityIndicator } from 'react-native';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
-
 import { useColorScheme } from '@/components/useColorScheme';
 import Colors from '@/constants/Colors';
 import { useAuthStore } from '@/features/auth/store/auth.store';
+import { useClientOnlyValue } from '@/components/useClientOnlyValue';
+import { auth } from '@/config/auth';
+import { onAuthStateChanged } from 'firebase/auth';
+import { router } from 'expo-router';
+import Toast from 'react-native-toast-message';
 
 export {
   // Catch any errors thrown by the Layout component.
@@ -41,11 +45,28 @@ export default function RootLayout() {
     }
   }, [loaded]);
 
+  const colorScheme = useColorScheme();
+
+  useEffect(() => {
+    const unsubscribe = onAuthStateChanged(auth, (user) => {
+      if (!user) {
+        router.replace('/(auth)/login');
+      }
+    });
+
+    return () => unsubscribe();
+  }, []);
+
   if (!loaded) {
     return null;
   }
 
-  return <RootLayoutNav />;
+  return (
+    <>
+      <RootLayoutNav />
+      <Toast />
+    </>
+  );
 }
 
 function RootLayoutNav() {
@@ -92,9 +113,15 @@ function RootLayoutNav() {
 
         {/* Main Navigation */}
         <View style={{ flex: 1, opacity: (isLoading || !isInitialized) ? 0 : 1 }}>
-          <Stack>
+          <Stack
+            screenOptions={{
+              headerShown: useClientOnlyValue(false, true),
+              contentStyle: { backgroundColor: colorScheme === 'dark' ? '#000' : '#fff' },
+            }}
+          >
             <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
             <Stack.Screen name="(auth)" options={{ headerShown: false }} />
+            <Stack.Screen name="modal" options={{ presentation: 'modal', headerShown: false }} />
           </Stack>
         </View>
       </ThemeProvider>
