@@ -1,5 +1,5 @@
 import React, { useEffect, useRef } from 'react';
-import { View, StyleSheet, Pressable, Text, Animated } from 'react-native';
+import { View, StyleSheet, Pressable, Text, Animated, KeyboardAvoidingView, ScrollView, Platform, Keyboard } from 'react-native';
 import { useColorScheme } from './useColorScheme';
 import Colors from '@/constants/Colors';
 import { CreateRecipeForm } from '@/features/create-recipe/components/CreateRecipeForm';
@@ -22,6 +22,36 @@ export function CreateModal({ visible, onClose, slideAnim }: CreateModalProps) {
     status,
     processingSteps,
   } = useCreateRecipeStore();
+  const keyboardHeight = useRef(new Animated.Value(0)).current;
+  
+  useEffect(() => {
+    const keyboardWillShow = Keyboard.addListener(
+      Platform.OS === 'ios' ? 'keyboardWillShow' : 'keyboardDidShow',
+      (e) => {
+        Animated.timing(keyboardHeight, {
+          toValue: e.endCoordinates.height,
+          duration: Platform.OS === 'ios' ? 250 : 200,
+          useNativeDriver: true,
+        }).start();
+      }
+    );
+
+    const keyboardWillHide = Keyboard.addListener(
+      Platform.OS === 'ios' ? 'keyboardWillHide' : 'keyboardDidHide',
+      () => {
+        Animated.timing(keyboardHeight, {
+          toValue: 0,
+          duration: Platform.OS === 'ios' ? 250 : 200,
+          useNativeDriver: true,
+        }).start();
+      }
+    );
+
+    return () => {
+      keyboardWillShow.remove();
+      keyboardWillHide.remove();
+    };
+  }, []);
 
   const handleSubmit = async () => {
     await startProcessing(() => {
@@ -63,67 +93,82 @@ export function CreateModal({ visible, onClose, slideAnim }: CreateModalProps) {
   if (!visible) return null;
 
   return (
-    <View style={styles.overlay}>
+    <KeyboardAvoidingView 
+      behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+      style={styles.overlay}
+      keyboardVerticalOffset={Platform.OS === 'ios' ? 0 : 20}
+    >
       <Pressable style={styles.backdrop} onPress={handleClose} />
       <Animated.View
         style={[
           styles.modalContainer,
           {
             backgroundColor: Colors[colorScheme ?? 'light'].background,
-            transform: [{ translateY: slideAnim }]
+            transform: [
+              { translateY: slideAnim },
+              { translateY: Animated.multiply(keyboardHeight, -0.5) }
+            ]
           }
         ]}
       >
         <View style={styles.handle} />
+        <ScrollView 
+          showsVerticalScrollIndicator={false}
+          contentContainerStyle={[
+            styles.scrollContent,
+            { paddingBottom: Platform.OS === 'ios' ? 20 : 0 }
+          ]}
+          keyboardShouldPersistTaps="handled"
+        >
+          {isProcessing ? (
+            <ProgressTracker 
+              steps={processingSteps} 
+            />
+          ) : (
+            <>
+              <Text style={[styles.title, { color: Colors[colorScheme ?? 'light'].text }]}>
+                Add a New Recipe
+              </Text>
+              
+              <Text style={[styles.description, { color: Colors[colorScheme ?? 'light'].text }]}>
+                When you add a recipe, HomeYum will:
+              </Text>
+              
+              <View style={styles.bulletPoints}>
+                <Text style={[styles.bulletPoint, { color: Colors[colorScheme ?? 'light'].text }]}>
+                  • Save the video to your recipe book
+                </Text>
+                <Text style={[styles.bulletPoint, { color: Colors[colorScheme ?? 'light'].text }]}>
+                  • Extract the ingredients list
+                </Text>
+                <Text style={[styles.bulletPoint, { color: Colors[colorScheme ?? 'light'].text }]}>
+                  • Generate step-by-step instructions
+                </Text>
+                <Text style={[styles.bulletPoint, { color: Colors[colorScheme ?? 'light'].text }]}>
+                  • Calculate nutrition information
+                </Text>
+              </View>
 
-        {isProcessing ? (
-          <ProgressTracker 
-            steps={processingSteps} 
-          />
-        ) : (
-          <>
-            <Text style={[styles.title, { color: Colors[colorScheme ?? 'light'].text }]}>
-              Add a New Recipe
-            </Text>
-            
-            <Text style={[styles.description, { color: Colors[colorScheme ?? 'light'].text }]}>
-              When you add a recipe, HomeYum will:
-            </Text>
-            
-            <View style={styles.bulletPoints}>
-              <Text style={[styles.bulletPoint, { color: Colors[colorScheme ?? 'light'].text }]}>
-                • Save the video to your recipe book
-              </Text>
-              <Text style={[styles.bulletPoint, { color: Colors[colorScheme ?? 'light'].text }]}>
-                • Extract the ingredients list
-              </Text>
-              <Text style={[styles.bulletPoint, { color: Colors[colorScheme ?? 'light'].text }]}>
-                • Generate step-by-step instructions
-              </Text>
-              <Text style={[styles.bulletPoint, { color: Colors[colorScheme ?? 'light'].text }]}>
-                • Calculate nutrition information
-              </Text>
-            </View>
+              <CreateRecipeForm />
 
-            <CreateRecipeForm />
-
-            <Pressable
-              style={[
-                styles.button,
-                { backgroundColor: getButtonColor() },
-                isProcessing && styles.buttonDisabled
-              ]}
-              onPress={handleSubmit}
-              disabled={isProcessing}
-            >
-              <Text style={styles.buttonText}>
-                {getButtonText()}
-              </Text>
-            </Pressable>
-          </>
-        )}
+              <Pressable
+                style={[
+                  styles.button,
+                  { backgroundColor: getButtonColor() },
+                  isProcessing && styles.buttonDisabled
+                ]}
+                onPress={handleSubmit}
+                disabled={isProcessing}
+              >
+                <Text style={styles.buttonText}>
+                  {getButtonText()}
+                </Text>
+              </Pressable>
+            </>
+          )}
+        </ScrollView>
       </Animated.View>
-    </View>
+    </KeyboardAvoidingView>
   );
 }
 
@@ -149,7 +194,7 @@ const styles = StyleSheet.create({
     padding: 20,
     borderTopLeftRadius: 20,
     borderTopRightRadius: 20,
-    minHeight: 300,
+    maxHeight: '90%',
   },
   handle: {
     width: 40,
@@ -193,5 +238,8 @@ const styles = StyleSheet.create({
     fontSize: 15,
     lineHeight: 24,
     marginBottom: 4,
+  },
+  scrollContent: {
+    flexGrow: 1,
   },
 }); 

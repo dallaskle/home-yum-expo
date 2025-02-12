@@ -65,11 +65,10 @@ export const useCreateRecipeStore = create<CreateRecipeStore>((set, get) => ({
           type: 'success',
           text1: 'Recipe Added!',
           text2: 'Your recipe has been successfully added to your feed',
-          position: 'bottom',
+          position: 'top',
           visibilityTime: 4000,
           autoHide: true,
-          topOffset: 40,
-          bottomOffset: 40,
+          topOffset: 50,
           onPress: () => {
             router.push('/');  // Navigate to feed when toast is pressed
           }
@@ -91,11 +90,10 @@ export const useCreateRecipeStore = create<CreateRecipeStore>((set, get) => ({
         type: 'error',
         text1: 'Failed to Add Recipe',
         text2: error instanceof Error ? error.message : 'Something went wrong',
-        position: 'bottom',
+        position: 'top',
         visibilityTime: 4000,
         autoHide: true,
-        topOffset: 40,
-        bottomOffset: 40
+        topOffset: 50
       });
     }
   },

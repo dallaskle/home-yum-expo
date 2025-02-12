@@ -4,7 +4,7 @@ import { DarkTheme, DefaultTheme, ThemeProvider } from '@react-navigation/native
 import { useFonts } from 'expo-font';
 import { Stack } from 'expo-router';
 import * as SplashScreen from 'expo-splash-screen';
-import { View, ActivityIndicator } from 'react-native';
+import { View, ActivityIndicator, Text } from 'react-native';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import { useColorScheme } from '@/components/useColorScheme';
 import Colors from '@/constants/Colors';
@@ -64,7 +64,56 @@ export default function RootLayout() {
   return (
     <>
       <RootLayoutNav />
-      <Toast />
+      <Toast 
+        config={{
+          success: (props) => (
+            <View style={{
+              padding: 16,
+              backgroundColor: Colors[colorScheme ?? 'light'].success,
+              borderRadius: 8,
+              marginHorizontal: 16,
+              flexDirection: 'row',
+              alignItems: 'center',
+              shadowColor: "#000",
+              shadowOffset: {
+                width: 0,
+                height: 2,
+              },
+              shadowOpacity: 0.25,
+              shadowRadius: 3.84,
+              elevation: 5,
+            }}>
+              <View style={{ flex: 1 }}>
+                <Text style={{ color: 'white', fontWeight: 'bold', fontSize: 16 }}>{props.text1}</Text>
+                {props.text2 && <Text style={{ color: 'white', fontSize: 14, marginTop: 4 }}>{props.text2}</Text>}
+              </View>
+            </View>
+          ),
+          error: (props) => (
+            <View style={{
+              padding: 16,
+              backgroundColor: Colors[colorScheme ?? 'light'].error,
+              borderRadius: 8,
+              marginHorizontal: 16,
+              flexDirection: 'row',
+              alignItems: 'center',
+              shadowColor: "#000",
+              shadowOffset: {
+                width: 0,
+                height: 2,
+              },
+              shadowOpacity: 0.25,
+              shadowRadius: 3.84,
+              elevation: 5,
+            }}>
+              <View style={{ flex: 1 }}>
+                <Text style={{ color: 'white', fontWeight: 'bold', fontSize: 16 }}>{props.text1}</Text>
+                {props.text2 && <Text style={{ color: 'white', fontSize: 14, marginTop: 4 }}>{props.text2}</Text>}
+              </View>
+            </View>
+          )
+        }}
+      />
     </>
   );
 }
