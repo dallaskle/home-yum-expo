@@ -1,9 +1,12 @@
-import React, { useEffect, useRef } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import { View, StyleSheet, Pressable, Text, Animated, KeyboardAvoidingView, ScrollView, Platform, Keyboard } from 'react-native';
 import { useColorScheme } from './useColorScheme';
 import Colors from '@/constants/Colors';
 import { CreateRecipeForm } from '@/features/create-recipe/components/CreateRecipeForm';
 import { useCreateRecipeStore } from '@/features/create-recipe/store/create-recipe.store';
+import { CreateModalTabs } from '@/features/create-recipe/components/CreateModalTabs';
+import { CreateManualRecipeForm } from '@/features/manual-recipe/components/CreateManualRecipeForm';
+import { useManualRecipeStore } from '@/features/manual-recipe/store/manual-recipe.store';
 
 interface CreateModalProps {
   visible: boolean;
@@ -13,8 +16,10 @@ interface CreateModalProps {
 
 export function CreateModal({ visible, onClose, slideAnim }: CreateModalProps) {
   const colorScheme = useColorScheme();
-  const { reset, status } = useCreateRecipeStore();
+  const { reset: resetCreateRecipe, status: createRecipeStatus } = useCreateRecipeStore();
+  const { reset: resetManualRecipe } = useManualRecipeStore();
   const keyboardHeight = useRef(new Animated.Value(0)).current;
+  const [activeTab, setActiveTab] = useState<'link' | 'manual'>('link');
   
   useEffect(() => {
     const keyboardWillShow = Keyboard.addListener(
@@ -46,8 +51,8 @@ export function CreateModal({ visible, onClose, slideAnim }: CreateModalProps) {
   }, []);
 
   const handleClose = () => {
-    if (status === 'completed') {
-      reset();
+    if (createRecipeStatus === 'completed') {
+      resetCreateRecipe();
       useCreateRecipeStore.setState({
         videoUrl: '',
         isProcessing: false,
@@ -56,6 +61,7 @@ export function CreateModal({ visible, onClose, slideAnim }: CreateModalProps) {
         processingSteps: []
       });
     }
+    resetManualRecipe();
     onClose();
   };
 
@@ -93,7 +99,16 @@ export function CreateModal({ visible, onClose, slideAnim }: CreateModalProps) {
             Add a New Recipe
           </Text>
           
-          <CreateRecipeForm onSuccess={handleClose} />
+          <CreateModalTabs
+            activeTab={activeTab}
+            onTabChange={setActiveTab}
+          />
+          
+          {activeTab === 'link' ? (
+            <CreateRecipeForm onSuccess={handleClose} />
+          ) : (
+            <CreateManualRecipeForm />
+          )}
         </ScrollView>
       </Animated.View>
     </KeyboardAvoidingView>

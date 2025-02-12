@@ -28,7 +28,7 @@ export function CreateModalTabs({ activeTab, onTabChange }: CreateModalTabsProps
             { color: Colors[colorScheme ?? 'light'].text }
           ]}
         >
-          Link
+          With a Link
         </Text>
       </Pressable>
       <Pressable
@@ -46,7 +46,7 @@ export function CreateModalTabs({ activeTab, onTabChange }: CreateModalTabsProps
             { color: Colors[colorScheme ?? 'light'].text }
           ]}
         >
-          Manual
+          Manually
         </Text>
       </Pressable>
     </View>
