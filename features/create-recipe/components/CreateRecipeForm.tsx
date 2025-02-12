@@ -4,63 +4,85 @@ import { useCreateRecipeStore } from '../store/create-recipe.store';
 import Colors from '@/constants/Colors';
 import { useColorScheme } from '@/components/useColorScheme';
 import { ProcessingStep } from '../api/create-recipe.api';
+import { ProgressTracker } from '@/components/ProgressTracker';
 
-export function CreateRecipeForm() {
+interface CreateRecipeFormProps {
+  onSuccess?: () => void;
+}
+
+export function CreateRecipeForm({ onSuccess }: CreateRecipeFormProps) {
   const colorScheme = useColorScheme();
   const { 
     videoUrl, 
     setVideoUrl, 
     isProcessing,
     error,
+    startProcessing,
+    status,
+    processingSteps
   } = useCreateRecipeStore();
 
-  const simulateProgress = () => {
-    const mockSteps: ProcessingStep[] = [
-      { step: 'metadata_extraction', status: 'processing', success: false, timestamp: new Date().toISOString() },
-      { step: 'transcription', status: 'processing', success: false, timestamp: new Date().toISOString() },
-      { step: 'video_analysis', status: 'processing', success: false, timestamp: new Date().toISOString() },
-      { step: 'recipe_generation', status: 'processing', success: false, timestamp: new Date().toISOString() },
-      { step: 'nutrition_analysis', status: 'processing', success: false, timestamp: new Date().toISOString() }
-    ];
-
-    // First set all steps to not started
-    mockSteps.forEach((step, index) => {
-      if (index > 0) {
-        step.status = 'failed';
-        step.success = false;
+  const handleSubmit = async () => {
+    await startProcessing(() => {
+      // Call onSuccess after a short delay to show success state
+      if (onSuccess) {
+        setTimeout(onSuccess, 1500);
       }
     });
-
-    useCreateRecipeStore.setState({ 
-      isProcessing: true,
-      processingSteps: mockSteps,
-      status: 'processing'
-    });
-
-    let currentStep = 0;
-    const interval = setInterval(() => {
-      if (currentStep >= mockSteps.length) {
-        clearInterval(interval);
-        useCreateRecipeStore.setState({ 
-          isProcessing: false,
-          status: 'completed'
-        });
-        return;
-      }
-
-      mockSteps[currentStep].status = 'completed';
-      mockSteps[currentStep].success = true;
-      if (currentStep + 1 < mockSteps.length) {
-        mockSteps[currentStep + 1].status = 'processing';
-      }
-
-      useCreateRecipeStore.setState({ processingSteps: [...mockSteps] });
-      currentStep++;
-    }, 2000);
   };
+
+  const getButtonText = () => {
+    if (isProcessing) {
+      return 'Processing...';
+    }
+    if (status === 'completed') {
+      return 'Recipe Added!';
+    }
+    if (status === 'failed') {
+      return 'Try Again';
+    }
+    return 'Add Recipe';
+  };
+
+  const getButtonColor = () => {
+    if (status === 'completed') {
+      return Colors[colorScheme ?? 'light'].success;
+    }
+    if (status === 'failed') {
+      return Colors[colorScheme ?? 'light'].error;
+    }
+    return Colors[colorScheme ?? 'light'].accent;
+  };
+
+  if (isProcessing) {
+    return (
+      <View style={styles.container}>
+        <ProgressTracker steps={processingSteps} />
+      </View>
+    );
+  }
 
   return (
     <View style={styles.container}>
+      <Text style={[styles.description, { color: Colors[colorScheme ?? 'light'].text }]}>
+        When you add a recipe, HomeYum will:
+      </Text>
+      
+      <View style={styles.bulletPoints}>
+        <Text style={[styles.bulletPoint, { color: Colors[colorScheme ?? 'light'].text }]}>
+          • Save the video to your recipe book
+        </Text>
+        <Text style={[styles.bulletPoint, { color: Colors[colorScheme ?? 'light'].text }]}>
+          • Extract the ingredients list
+        </Text>
+        <Text style={[styles.bulletPoint, { color: Colors[colorScheme ?? 'light'].text }]}>
+          • Generate step-by-step instructions
+        </Text>
+        <Text style={[styles.bulletPoint, { color: Colors[colorScheme ?? 'light'].text }]}>
+          • Calculate nutrition information
+        </Text>
+      </View>
+
       <TextInput
         style={[
           styles.input,
@@ -84,6 +106,20 @@ export function CreateRecipeForm() {
           {error}
         </Text>
       )}
+
+      <Pressable
+        style={[
+          styles.button,
+          { backgroundColor: getButtonColor() },
+          isProcessing && styles.buttonDisabled
+        ]}
+        onPress={handleSubmit}
+        disabled={isProcessing}
+      >
+        <Text style={styles.buttonText}>
+          {getButtonText()}
+        </Text>
+      </Pressable>
     </View>
   );
 }
@@ -101,21 +137,37 @@ const styles = StyleSheet.create({
     paddingHorizontal: 15,
     marginBottom: 15,
   },
-  demoButton: {
+  button: {
     width: '100%',
-    height: 40,
+    height: 50,
     borderRadius: 8,
-    justifyContent: 'center',
     alignItems: 'center',
-    marginBottom: 15,
+    justifyContent: 'center',
+    marginTop: 10,
   },
-  demoButtonText: {
+  buttonDisabled: {
+    opacity: 0.7,
+  },
+  buttonText: {
     color: 'white',
     fontSize: 16,
-    fontWeight: '500',
+    fontWeight: 'bold',
   },
   errorText: {
     fontSize: 14,
     marginTop: 5,
+  },
+  description: {
+    fontSize: 16,
+    marginBottom: 12,
+  },
+  bulletPoints: {
+    marginBottom: 24,
+    paddingHorizontal: 8,
+  },
+  bulletPoint: {
+    fontSize: 15,
+    lineHeight: 24,
+    marginBottom: 4,
   },
 }); 
