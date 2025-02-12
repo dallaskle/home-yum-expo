@@ -110,11 +110,15 @@ export function CreateRecipeForm({ onSuccess }: CreateRecipeFormProps) {
       <Pressable
         style={[
           styles.button,
-          { backgroundColor: getButtonColor() },
-          isProcessing && styles.buttonDisabled
+          {
+            backgroundColor: videoUrl.trim()
+              ? getButtonColor()
+              : Colors[colorScheme ?? 'light'].border,
+            opacity: videoUrl.trim() && !isProcessing ? 1 : 0.5
+          }
         ]}
         onPress={handleSubmit}
-        disabled={isProcessing}
+        disabled={!videoUrl.trim() || isProcessing}
       >
         <Text style={styles.buttonText}>
           {getButtonText()}

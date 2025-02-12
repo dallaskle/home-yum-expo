@@ -1,5 +1,5 @@
 import React from 'react';
-import { View, StyleSheet, Text, TextInput, Image, ScrollView } from 'react-native';
+import { View, StyleSheet, Text, TextInput, Image, ScrollView, Pressable } from 'react-native';
 import { useManualRecipeStore } from '../store/manual-recipe.store';
 import Colors from '@/constants/Colors';
 import { useColorScheme } from '@/components/useColorScheme';
@@ -126,8 +126,20 @@ export function CreateManualRecipeForm() {
         onChangeText={setPrompt}
         multiline
         numberOfLines={2}
-        onSubmitEditing={handleSubmit}
       />
+      <Pressable
+        style={[
+          styles.submitButton,
+          {
+            backgroundColor: prompt.trim() ? Colors[colorScheme ?? 'light'].accent : Colors[colorScheme ?? 'light'].border,
+            opacity: prompt.trim() ? 1 : 0.5
+          }
+        ]}
+        onPress={handleSubmit}
+        disabled={!prompt.trim()}
+      >
+        <Text style={styles.submitButtonText}>Generate Recipe</Text>
+      </Pressable>
     </View>
   );
 }
@@ -135,6 +147,7 @@ export function CreateManualRecipeForm() {
 const styles = StyleSheet.create({
   container: {
     padding: 16,
+    gap: 16,
   },
   input: {
     borderWidth: 1,
@@ -143,6 +156,17 @@ const styles = StyleSheet.create({
     fontSize: 16,
     minHeight: 80,
     textAlignVertical: 'top',
+  },
+  submitButton: {
+    borderRadius: 8,
+    padding: 16,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  submitButtonText: {
+    color: 'white',
+    fontSize: 16,
+    fontWeight: '600',
   },
   loadingContainer: {
     flex: 1,
