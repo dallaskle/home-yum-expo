@@ -107,7 +107,7 @@ export function CreateModal({ visible, onClose, slideAnim }: CreateModalProps) {
           {activeTab === 'link' ? (
             <CreateRecipeForm onSuccess={handleClose} />
           ) : (
-            <CreateManualRecipeForm />
+            <CreateManualRecipeForm onSuccess={handleClose} />
           )}
         </ScrollView>
       </Animated.View>

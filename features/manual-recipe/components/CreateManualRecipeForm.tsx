@@ -7,7 +7,11 @@ import Animated, { FadeIn, FadeOut } from 'react-native-reanimated';
 import { ProgressTracker } from '@/components/ProgressTracker';
 import { useFeedStore } from '@/features/feed/store/feed.store';
 
-export function CreateManualRecipeForm() {
+interface CreateManualRecipeFormProps {
+  onSuccess?: () => void;
+}
+
+export function CreateManualRecipeForm({ onSuccess }: CreateManualRecipeFormProps) {
   const colorScheme = useColorScheme();
   const [prompt, setPrompt] = React.useState('');
   const { addVideoToFeed } = useFeedStore();
@@ -32,6 +36,9 @@ export function CreateManualRecipeForm() {
     const result = await confirmRecipe();
     if (result?.video) {
       await addVideoToFeed(result.video.videoId);
+      if (onSuccess) {
+        setTimeout(onSuccess, 1500);
+      }
     }
   };
 
@@ -130,7 +137,9 @@ export function CreateManualRecipeForm() {
             style={[
               styles.confirmButton,
               {
-                backgroundColor: Colors[colorScheme ?? 'light'].accent,
+                backgroundColor: recipeData.status === 'completed' 
+                  ? Colors[colorScheme ?? 'light'].success 
+                  : Colors[colorScheme ?? 'light'].accent,
                 opacity: recipeData.status === 'completed' ? 0.5 : 1
               }
             ]}
