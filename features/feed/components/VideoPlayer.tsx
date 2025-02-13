@@ -27,18 +27,24 @@ export function VideoPlayer({ video, isActive, onEnd }: VideoPlayerProps) {
   const [showControls, setShowControls] = useState(false);
   const [isPlaying, setIsPlaying] = useState(true);
   const [showRecipeDetails, setShowRecipeDetails] = useState(false);
+  const [videoError, setVideoError] = useState<string | null>(null);
 
   useEffect(() => {
     if (!videoRef.current || !backgroundVideoRef.current) return;
 
+    console.log('Video URL:', video.videoUrl);
+    
     if (isActive && isPlaying) {
-      videoRef.current.playAsync();
-      backgroundVideoRef.current.playAsync();
+      videoRef.current.playAsync().catch(error => {
+        console.error('Error playing video:', error);
+        setVideoError(error.message);
+      });
+      backgroundVideoRef.current.playAsync().catch(console.error);
     } else {
-      videoRef.current.pauseAsync();
-      backgroundVideoRef.current.pauseAsync();
+      videoRef.current.pauseAsync().catch(console.error);
+      backgroundVideoRef.current.pauseAsync().catch(console.error);
     }
-  }, [isActive, isPlaying]);
+  }, [isActive, isPlaying, video.videoUrl]);
 
   const handleBackgroundVideoUpdate = (status: AVPlaybackStatus) => {
     if (!status.isLoaded) return;
@@ -50,7 +56,14 @@ export function VideoPlayer({ video, isActive, onEnd }: VideoPlayerProps) {
   };
 
   const handlePlaybackStatusUpdate = (status: AVPlaybackStatus) => {
-    if (!status.isLoaded) return;
+    if (!status.isLoaded) {
+      console.log('Video not loaded:', status);
+      if (status.error) {
+        console.error('Video loading error:', status.error);
+        setVideoError(status.error);
+      }
+      return;
+    }
     
     if (status.durationMillis) {
       setDuration(status.durationMillis);
@@ -58,7 +71,6 @@ export function VideoPlayer({ video, isActive, onEnd }: VideoPlayerProps) {
     setPosition(status.positionMillis);
     
     if (status.didJustFinish) {
-      // Reset video position and replay
       videoRef.current?.setPositionAsync(0);
       videoRef.current?.playAsync();
       onEnd?.();
@@ -102,7 +114,18 @@ export function VideoPlayer({ video, isActive, onEnd }: VideoPlayerProps) {
             shouldPlay={isActive && isPlaying}
             isLooping={false}
             onPlaybackStatusUpdate={handlePlaybackStatusUpdate}
+            onError={(error: Error | string) => {
+              console.error('Video error:', error);
+              setVideoError(typeof error === 'string' ? error : error.message);
+            }}
           />
+          {videoError && (
+            <View style={styles.errorContainer}>
+              <Text style={styles.errorText}>
+                Error loading video: {videoError}
+              </Text>
+            </View>
+          )}
         </TouchableOpacity>
         
         {/* Progress Bar */}
@@ -292,5 +315,20 @@ const styles = StyleSheet.create({
     textShadowOffset: { width: 0, height: 1 },
     textShadowRadius: 3,
     color: '#FFFFFF',
+  },
+  errorContainer: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
+    justifyContent: 'center',
+    alignItems: 'center',
+    backgroundColor: 'rgba(0, 0, 0, 0.7)',
+  },
+  errorText: {
+    color: '#FFFFFF',
+    textAlign: 'center',
+    padding: 20,
   },
 }); 
