@@ -10,6 +10,7 @@ import { VideoReactions } from './VideoReactions';
 import { RecipeDetailsModal } from '@/features/meal/components/RecipeDetailsModal';
 import { FontAwesome } from '@expo/vector-icons';
 import { useFeedStore } from '../store/feed.store';
+import { videoCacheService } from '../services/video-cache.service';
 
 const { width: SCREEN_WIDTH, height: SCREEN_HEIGHT } = Dimensions.get('window');
 
@@ -30,6 +31,7 @@ export function VideoPlayer({ video, isActive, onEnd }: VideoPlayerProps) {
   const [showRecipeDetails, setShowRecipeDetails] = useState(false);
   const [videoError, setVideoError] = useState<string | null>(null);
   const { isTabFocused } = useFeedStore();
+  const [videoSource, setVideoSource] = useState<string>(video.videoUrl);
 
   useEffect(() => {
     if (!videoRef.current || !backgroundVideoRef.current) {
@@ -69,6 +71,20 @@ export function VideoPlayer({ video, isActive, onEnd }: VideoPlayerProps) {
 
     playVideo();
   }, [isActive, isPlaying, isTabFocused, video.videoUrl]);
+
+  useEffect(() => {
+    const cacheVideo = async () => {
+      try {
+        const cachedUrl = await videoCacheService.cacheVideo(video.videoUrl);
+        setVideoSource(cachedUrl);
+      } catch (error) {
+        console.error('Failed to cache video:', error);
+        setVideoSource(video.videoUrl); // Fallback to original URL
+      }
+    };
+
+    cacheVideo();
+  }, [video.videoUrl]);
 
   const handleBackgroundVideoUpdate = (status: AVPlaybackStatus) => {
     if (!status.isLoaded) return;
@@ -136,7 +152,7 @@ export function VideoPlayer({ video, isActive, onEnd }: VideoPlayerProps) {
         >
           <ExpoVideo
             ref={videoRef}
-            source={{ uri: video.videoUrl }}
+            source={{ uri: videoSource }}
             style={styles.video}
             resizeMode={ResizeMode.CONTAIN}
             shouldPlay={isActive && isPlaying && isTabFocused}

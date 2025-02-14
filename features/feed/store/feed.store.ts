@@ -2,6 +2,7 @@ import { create } from 'zustand';
 import { Video } from '@/types/database.types';
 import { FeedAPI } from '../api/feed.api';
 import { auth } from '@/config/auth';
+import { videoCacheService } from '../services/video-cache.service';
 
 interface FeedState {
   videos: Video[];
@@ -14,6 +15,7 @@ interface FeedState {
   setCurrentVideoIndex: (index: number) => void;
   addVideoToFeed: (videoId: string) => Promise<void>;
   setTabFocused: (focused: boolean) => void;
+  preloadVideos: (startIndex: number) => void;
 }
 
 export const useFeedStore = create<FeedState>()((set, get) => ({
@@ -57,12 +59,16 @@ export const useFeedStore = create<FeedState>()((set, get) => ({
   },
 
   setCurrentVideoIndex: (index: number) => {
-    const { videos, hasMore, loadFeed } = get();
+    const { videos, hasMore, loadFeed, preloadVideos } = get();
     set({ currentVideoIndex: index });
+    
     // Preload more videos when we're near the end
     if (index >= videos.length - 3) {
       loadFeed();
     }
+    
+    // Preload next few videos
+    preloadVideos(index);
   },
 
   addVideoToFeed: async (videoId: string) => {
@@ -96,5 +102,19 @@ export const useFeedStore = create<FeedState>()((set, get) => ({
 
   setTabFocused: (focused: boolean) => {
     set({ isTabFocused: focused });
+  },
+
+  preloadVideos: async (startIndex: number) => {
+    const { videos } = get();
+    const PRELOAD_COUNT = 2; // Number of videos to preload ahead
+
+    for (let i = startIndex + 1; i < startIndex + 1 + PRELOAD_COUNT; i++) {
+      if (i < videos.length) {
+        // Preload video in background
+        videoCacheService.cacheVideo(videos[i].videoUrl).catch(error => {
+          console.error('Failed to preload video:', error);
+        });
+      }
+    }
   },
 })); 
