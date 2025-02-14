@@ -76,11 +76,16 @@ export const useFeedStore = create<FeedState>()((set, get) => ({
         ...videos.slice(currentVideoIndex)
       ];
       
-      set({
-        videos: newVideos,
-        // Keep the same index since we inserted at that position
-        currentVideoIndex: currentVideoIndex
-      });
+      // First update videos array
+      set({ videos: newVideos });
+      
+      // Then trigger a re-render by briefly changing and resetting the currentVideoIndex
+      set({ currentVideoIndex: -1 });
+      
+      // Use setTimeout to ensure state updates are processed
+      setTimeout(() => {
+        set({ currentVideoIndex });
+      }, 50);
     } catch (error) {
       console.error('Failed to add video to feed:', error);
     }

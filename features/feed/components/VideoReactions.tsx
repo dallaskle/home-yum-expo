@@ -65,41 +65,35 @@ export function VideoReactions({ videoId, initialReaction, initialTryListItem }:
   return (
     <View style={styles.container}>
       <TouchableOpacity
-        style={styles.button}
+        style={[styles.button, optimisticReaction === ReactionType.LIKE && { backgroundColor: Colors.light.accent }]}
         onPress={() => handleReaction(ReactionType.LIKE)}
       >
         <FontAwesome
           name="thumbs-up"
           size={24}
-          color={optimisticReaction === ReactionType.LIKE
-            ? Colors[colorScheme ?? 'light'].accent
-            : Colors[colorScheme ?? 'light'].text}
+          color="white"
         />
       </TouchableOpacity>
 
       <TouchableOpacity
-        style={styles.button}
+        style={[styles.button, optimisticReaction === ReactionType.DISLIKE && { backgroundColor: Colors.light.accent }]}
         onPress={() => handleReaction(ReactionType.DISLIKE)}
       >
         <FontAwesome
           name="thumbs-down"
           size={24}
-          color={optimisticReaction === ReactionType.DISLIKE
-            ? Colors[colorScheme ?? 'light'].accent
-            : Colors[colorScheme ?? 'light'].text}
+          color="white"
         />
       </TouchableOpacity>
 
       <TouchableOpacity
-        style={styles.button}
+        style={[styles.button, optimisticTryList && { backgroundColor: Colors.light.accent }]}
         onPress={handleTryList}
       >
         <FontAwesome
           name={optimisticTryList ? "check" : "plus"}
           size={24}
-          color={optimisticTryList
-            ? Colors[colorScheme ?? 'light'].accent
-            : Colors[colorScheme ?? 'light'].text}
+          color="white"
         />
       </TouchableOpacity>
     </View>
@@ -119,7 +113,8 @@ const styles = StyleSheet.create({
     width: 44,
     height: 44,
     borderRadius: 22,
-    backgroundColor: 'rgba(0, 0, 0, 0.5)',
+    backgroundColor: 'rgba(0, 0, 0, 0.4)',
+    opacity: 0.8,
     alignItems: 'center',
     justifyContent: 'center',
     shadowColor: '#000',

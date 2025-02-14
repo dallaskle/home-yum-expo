@@ -30,17 +30,27 @@ export function VideoPlayer({ video, isActive, onEnd }: VideoPlayerProps) {
   const [videoError, setVideoError] = useState<string | null>(null);
 
   useEffect(() => {
-    if (!videoRef.current || !backgroundVideoRef.current) return;
+    if (!videoRef.current || !backgroundVideoRef.current) {
+      console.log('Video refs not initialized for:', video.videoId);
+      return;
+    }
 
-    console.log('Video URL:', video.videoUrl);
+    console.log('Video state update:', {
+      videoId: video.videoId,
+      isActive,
+      isPlaying,
+      videoUrl: video.videoUrl
+    });
     
     if (isActive && isPlaying) {
+      console.log('Attempting to play video:', video.videoId);
       videoRef.current.playAsync().catch(error => {
         console.error('Error playing video:', error);
         setVideoError(error.message);
       });
       backgroundVideoRef.current.playAsync().catch(console.error);
     } else {
+      console.log('Pausing video:', video.videoId);
       videoRef.current.pauseAsync().catch(console.error);
       backgroundVideoRef.current.pauseAsync().catch(console.error);
     }
@@ -57,7 +67,10 @@ export function VideoPlayer({ video, isActive, onEnd }: VideoPlayerProps) {
 
   const handlePlaybackStatusUpdate = (status: AVPlaybackStatus) => {
     if (!status.isLoaded) {
-      console.log('Video not loaded:', status);
+      console.log('Video not loaded:', {
+        videoId: video.videoId,
+        status: status
+      });
       if (status.error) {
         console.error('Video loading error:', status.error);
         setVideoError(status.error);
@@ -71,6 +84,7 @@ export function VideoPlayer({ video, isActive, onEnd }: VideoPlayerProps) {
     setPosition(status.positionMillis);
     
     if (status.didJustFinish) {
+      console.log('Video finished playing:', video.videoId);
       videoRef.current?.setPositionAsync(0);
       videoRef.current?.playAsync();
       onEnd?.();
@@ -180,13 +194,6 @@ export function VideoPlayer({ video, isActive, onEnd }: VideoPlayerProps) {
                     ellipsizeMode="tail"
                   >
                     {video.videoTitle}
-                  </Text>
-                  <Text 
-                    style={styles.description}
-                    numberOfLines={3}
-                    ellipsizeMode="tail"
-                  >
-                    {video.mealName} | {video.mealDescription}
                   </Text>
                 </View>
               </TouchableOpacity>

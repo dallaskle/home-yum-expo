@@ -143,7 +143,7 @@ export function RecipeDetailsModal({ visible, videoId, onClose }: RecipeDetailsM
       onRequestClose={onClose}
     >
       <View style={styles.modalOverlay}>
-        <View style={[styles.modalContent, { backgroundColor: '#333333' }]}>
+        <View style={[styles.modalContent, { backgroundColor: 'white' }]}>
           {/* Header */}
           <View style={styles.header}>
             <Text style={[styles.title, { color: Colors[colorScheme ?? 'light'].text }]}>
