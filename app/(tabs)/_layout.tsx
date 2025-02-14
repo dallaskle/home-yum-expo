@@ -14,7 +14,6 @@ import { useColorScheme } from '@/components/useColorScheme';
 import { useClientOnlyValue } from '@/components/useClientOnlyValue';
 import { useAuthStore } from '@/features/auth/store/auth.store';
 import { useReactionsStore } from '@/features/feed/store/reactions.store';
-import { CreateModal } from '@/components/CreateModal';
 
 // You can explore the built-in icon families and icons on the web at https://icons.expo.fyi/
 function TabBarIcon(props: {
@@ -105,25 +104,6 @@ function RootLayoutNav() {
     },
   };
 
-  const [modalVisible, setModalVisible] = useState(false);
-  const slideAnim = useRef(new Animated.Value(1000)).current;
-
-  const showModal = () => {
-    setModalVisible(true);
-    Animated.spring(slideAnim, {
-      toValue: 0,
-      useNativeDriver: true,
-    }).start();
-  };
-
-  const hideModal = () => {
-    Animated.timing(slideAnim, {
-      toValue: 1000,
-      duration: 300,
-      useNativeDriver: true,
-    }).start(() => setModalVisible(false));
-  };
-
   return (
     <GestureHandlerRootView style={{ flex: 1, backgroundColor: '#333333' }}>
       <ThemeProvider value={customTheme}>
@@ -152,6 +132,28 @@ function RootLayoutNav() {
             options={{
               title: 'Feed',
               tabBarIcon: ({ color }) => <TabBarIcon name="video-camera" color={color} />,
+              
+            }}
+          />
+          <Tabs.Screen
+            name="create"
+            options={{
+              title: 'Create',
+              tabBarIcon: ({ color }) => <TabBarIcon name="plus" color={color} />,
+              tabBarStyle: {
+                backgroundColor: '#333333',
+                position: 'absolute',
+                elevation: 10,
+                height: 72,
+                paddingBottom: 20,
+                shadowColor: '#FF6600',
+                shadowOffset: {
+                  width: 0,
+                  height: -4,
+                },
+                shadowOpacity: 0.3,
+                shadowRadius: 4
+              },
             }}
           />
           <Tabs.Screen
@@ -197,32 +199,6 @@ function RootLayoutNav() {
             }}
           />
         </Tabs>
-        
-        {/* Floating Plus Button */}
-        <Pressable
-          onPress={showModal}
-          style={{
-            position: 'absolute',
-            top: 40,
-            right: 20,
-            width: 50,
-            height: 50,
-            alignItems: 'center',
-            justifyContent: 'center',
-          }}
-        >
-          <FontAwesome
-            name="plus"
-            size={30}
-            color={Colors[colorScheme ?? 'light'].accent}
-          />
-        </Pressable>
-        
-        <CreateModal
-          visible={modalVisible}
-          onClose={hideModal}
-          slideAnim={slideAnim}
-        />
       </ThemeProvider>
     </GestureHandlerRootView>
   );
