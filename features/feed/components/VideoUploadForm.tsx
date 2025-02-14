@@ -8,6 +8,7 @@ import Colors from '@/constants/Colors';
 import { useColorScheme } from '@/components/useColorScheme';
 import { router } from 'expo-router';
 import * as VideoThumbnails from 'expo-video-thumbnails';
+import { CachedImage } from '@/components/CachedImage';
 
 export function VideoUploadForm() {
   const colorScheme = useColorScheme();
@@ -104,10 +105,9 @@ export function VideoUploadForm() {
               <Text style={[styles.thumbnailLabel, { color: Colors[colorScheme ?? 'light'].text }]}>
                 Thumbnail Preview:
               </Text>
-              <Image
-                source={{ uri: thumbnailUri }}
+              <CachedImage
+                source={thumbnailUri}
                 style={styles.thumbnailPreview}
-                resizeMode="cover"
               />
             </View>
           )}

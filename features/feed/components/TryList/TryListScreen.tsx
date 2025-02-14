@@ -11,6 +11,7 @@ import { ScheduleView } from '@/features/schedule/components/ScheduleView';
 import { ScheduleMealModal } from '@/features/schedule/components/ScheduleMealModal';
 import { API_URLS } from '@/config/urls';
 import { TriedView } from '@/features/schedule/components/TriedView';
+import { CachedImage } from '@/components/CachedImage';
 
 const { width: SCREEN_WIDTH } = Dimensions.get('window');
 const ITEM_HEIGHT = 120;
@@ -103,8 +104,8 @@ function TryListItem({ videoId, onRemove }: TryListItemProps) {
   return (
     <>
       <View style={styles.itemContainer}>
-        <Image 
-          source={{ uri: video.thumbnailUrl }} 
+        <CachedImage 
+          source={video.thumbnailUrl} 
           style={styles.thumbnail}
         />
         <View style={styles.itemContent}>

@@ -4,6 +4,7 @@ import { FontAwesome } from '@expo/vector-icons';
 import Colors from '@/constants/Colors';
 import { useColorScheme } from '@/components/useColorScheme';
 import { Video } from '@/types/database.types';
+import { CachedImage } from '@/components/CachedImage';
 
 const SCREEN_WIDTH = Dimensions.get('window').width;
 const THUMBNAIL_SIZE = SCREEN_WIDTH / 3 - 2;
@@ -46,12 +47,9 @@ export function UserVideosTab({ videos, isLoading }: UserVideosTabProps) {
           }}
         >
           <View style={styles.thumbnailWrapper}>
-            <RNImage
-              source={{ 
-                uri: video.thumbnailUrl?.replace(/\?$/, '')
-              }}
+            <CachedImage
+              source={video.thumbnailUrl}
               style={[styles.thumbnail, { backgroundColor: '#666' }]}
-              resizeMode="cover"
             />
             <View style={styles.overlay}>
               <FontAwesome name="play" size={20} color="white" />

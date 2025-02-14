@@ -1,11 +1,12 @@
 import React, { useEffect, useState } from 'react';
-import { StyleSheet, View, Text, ScrollView, Image, TouchableOpacity } from 'react-native';
+import { StyleSheet, View, Text, ScrollView, TouchableOpacity } from 'react-native';
 import { useScheduleStore } from '../store/schedule.store';
 import Colors from '@/constants/Colors';
 import { useColorScheme } from '@/components/useColorScheme';
 import { FontAwesome } from '@expo/vector-icons';
 import { RatingModal } from '@/features/ratings/components/RatingModal';
 import { useRatingsStore } from '@/features/ratings/store/ratings.store';
+import { CachedImage } from '@/components/CachedImage';
 
 const getMealPeriod = (time: string): string => {
   const hour = parseInt(time.split(':')[0], 10);
@@ -114,8 +115,8 @@ export function ScheduleView() {
                 section === 'Past' && styles.pastMealItem
               ]}
             >
-              <Image
-                source={{ uri: meal.video?.thumbnailUrl }}
+              <CachedImage
+                source={meal.video?.thumbnailUrl}
                 style={[
                   styles.thumbnail,
                   section === 'Past' && styles.pastThumbnail

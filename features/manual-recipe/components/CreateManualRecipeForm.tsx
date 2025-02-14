@@ -7,6 +7,7 @@ import Animated, { FadeIn, FadeOut } from 'react-native-reanimated';
 import { ProgressTracker } from '@/components/ProgressTracker';
 import { useFeedStore } from '@/features/feed/store/feed.store';
 import { router } from 'expo-router';
+import { CachedImage } from '@/components/CachedImage';
 
 interface CreateManualRecipeFormProps {
   onSuccess?: () => void;
@@ -64,8 +65,8 @@ export function CreateManualRecipeForm({ onSuccess }: CreateManualRecipeFormProp
   if (recipeData) {
     return (
       <ScrollView style={styles.previewContainer}>
-        <Image 
-          source={{ uri: recipeData.mealImage.url }}
+        <CachedImage 
+          source={recipeData.mealImage.url}
           style={styles.previewImage}
         />
         

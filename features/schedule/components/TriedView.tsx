@@ -1,9 +1,10 @@
 import React from 'react';
-import { StyleSheet, View, Text, ScrollView, Image } from 'react-native';
+import { StyleSheet, View, Text, ScrollView } from 'react-native';
 import { useScheduleStore } from '../store/schedule.store';
 import Colors from '@/constants/Colors';
 import { useColorScheme } from '@/components/useColorScheme';
 import { FontAwesome } from '@expo/vector-icons';
+import { CachedImage } from '@/components/CachedImage';
 
 const getMealPeriod = (time: string): string => {
   const hour = parseInt(time.split(':')[0], 10);
@@ -99,8 +100,8 @@ export function TriedView() {
           </Text>
           {meals.map((meal) => (
             <View key={meal.mealId} style={styles.mealItem}>
-              <Image
-                source={{ uri: meal.video?.thumbnailUrl }}
+              <CachedImage
+                source={meal.video?.thumbnailUrl}
                 style={styles.thumbnail}
               />
               <View style={styles.mealContent}>
