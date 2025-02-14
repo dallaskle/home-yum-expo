@@ -7,6 +7,7 @@ import { useCreateRecipeStore } from '@/features/create-recipe/store/create-reci
 import { CreateModalTabs } from '@/features/create-recipe/components/CreateModalTabs';
 import { CreateManualRecipeForm } from '@/features/manual-recipe/components/CreateManualRecipeForm';
 import { useManualRecipeStore } from '@/features/manual-recipe/store/manual-recipe.store';
+import { Ionicons } from '@expo/vector-icons';
 
 interface CreateModalProps {
   visible: boolean;
@@ -51,6 +52,10 @@ export function CreateModal({ visible, onClose, slideAnim }: CreateModalProps) {
   }, []);
 
   const handleClose = () => {
+    onClose();
+  };
+
+  const handleReset = () => {
     if (createRecipeStatus === 'completed') {
       resetCreateRecipe();
       useCreateRecipeStore.setState({
@@ -62,7 +67,6 @@ export function CreateModal({ visible, onClose, slideAnim }: CreateModalProps) {
       });
     }
     resetManualRecipe();
-    onClose();
   };
 
   if (!visible) return null;
@@ -91,13 +95,27 @@ export function CreateModal({ visible, onClose, slideAnim }: CreateModalProps) {
           showsVerticalScrollIndicator={false}
           contentContainerStyle={[
             styles.scrollContent,
-            { paddingBottom: Platform.OS === 'ios' ? 20 : 0 }
+            { 
+              paddingBottom: Platform.OS === 'ios' ? 120 : 100 
+            }
           ]}
           keyboardShouldPersistTaps="handled"
         >
-          <Text style={[styles.title, { color: Colors[colorScheme ?? 'light'].text }]}>
-            Add a New Recipe
-          </Text>
+          <View style={styles.headerContainer}>
+            <Text style={[styles.title, { color: Colors[colorScheme ?? 'light'].text }]}>
+              Add a New Recipe
+            </Text>
+              <Pressable 
+                style={styles.resetButton}
+                onPress={handleReset}
+              >
+                <Ionicons 
+                  name="add-circle" 
+                  size={28} 
+                  color={"black"}
+                />
+              </Pressable>
+          </View>
           
           <CreateModalTabs
             activeTab={activeTab}
@@ -109,6 +127,7 @@ export function CreateModal({ visible, onClose, slideAnim }: CreateModalProps) {
           ) : (
             <CreateManualRecipeForm onSuccess={handleClose} />
           )}
+          <View style={{height: 100}}/>
         </ScrollView>
       </Animated.View>
     </KeyboardAvoidingView>
@@ -138,6 +157,7 @@ const styles = StyleSheet.create({
     borderTopLeftRadius: 20,
     borderTopRightRadius: 20,
     maxHeight: '90%',
+    marginBottom: 0,
   },
   handle: {
     width: 40,
@@ -147,11 +167,26 @@ const styles = StyleSheet.create({
     alignSelf: 'center',
     marginBottom: 20,
   },
+  headerContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    position: 'relative',
+    marginBottom: 16,
+    width: '100%',
+  },
   title: {
     fontSize: 24,
     fontWeight: 'bold',
-    marginBottom: 16,
     textAlign: 'center',
+    flex: 1,
+  },
+  resetButton: {
+    position: 'absolute',
+    right: 0,
+    top: 0,
+    padding: 4,
+    color: 'black',
   },
   scrollContent: {
     flexGrow: 1,

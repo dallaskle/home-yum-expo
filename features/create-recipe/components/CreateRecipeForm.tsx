@@ -5,6 +5,7 @@ import Colors from '@/constants/Colors';
 import { useColorScheme } from '@/components/useColorScheme';
 import { ProcessingStep } from '../api/create-recipe.api';
 import { ProgressTracker } from '@/components/ProgressTracker';
+import { router } from 'expo-router';
 
 interface CreateRecipeFormProps {
   onSuccess?: () => void;
@@ -24,10 +25,10 @@ export function CreateRecipeForm({ onSuccess }: CreateRecipeFormProps) {
 
   const handleSubmit = async () => {
     await startProcessing(() => {
-      // Call onSuccess after a short delay to show success state
       if (onSuccess) {
         setTimeout(onSuccess, 1500);
       }
+      router.replace('/(tabs)/index');
     });
   };
 
