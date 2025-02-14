@@ -5,11 +5,13 @@ import { useFeedStore } from '../store/feed.store';
 import { useReactionsStore } from '../store/reactions.store';
 import { useScheduleStore } from '@/features/schedule/store/schedule.store';
 import { useRatingsStore } from '@/features/ratings/store/ratings.store';
+import { useIsFocused } from '@react-navigation/native';
 
 const { height: SCREEN_HEIGHT } = Dimensions.get('window');
 
 export function VideoFeed() {
-  const { videos, currentVideoIndex, loadFeed, setCurrentVideoIndex } = useFeedStore();
+  const isFocused = useIsFocused();
+  const { videos, currentVideoIndex, loadFeed, setCurrentVideoIndex, setTabFocused } = useFeedStore();
   const { initialize: initializeReactions } = useReactionsStore();
   const { initialize: initializeSchedule } = useScheduleStore();
   const { initialize: initializeRatings } = useRatingsStore();
@@ -26,6 +28,11 @@ export function VideoFeed() {
 
     initializeData();
   }, []);
+
+  useEffect(() => {
+    console.log('Tab focus changed:', isFocused);
+    setTabFocused(isFocused);
+  }, [isFocused]);
 
   const onViewableItemsChanged = React.useCallback(({ changed }: { changed: ViewToken[] }) => {
     const viewableItem = changed.find((item) => item.isViewable);

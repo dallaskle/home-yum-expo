@@ -9,6 +9,7 @@ import Animated, { useAnimatedStyle, withTiming } from 'react-native-reanimated'
 import { VideoReactions } from './VideoReactions';
 import { RecipeDetailsModal } from '@/features/meal/components/RecipeDetailsModal';
 import { FontAwesome } from '@expo/vector-icons';
+import { useFeedStore } from '../store/feed.store';
 
 const { width: SCREEN_WIDTH, height: SCREEN_HEIGHT } = Dimensions.get('window');
 
@@ -28,6 +29,7 @@ export function VideoPlayer({ video, isActive, onEnd }: VideoPlayerProps) {
   const [isPlaying, setIsPlaying] = useState(true);
   const [showRecipeDetails, setShowRecipeDetails] = useState(false);
   const [videoError, setVideoError] = useState<string | null>(null);
+  const { isTabFocused } = useFeedStore();
 
   useEffect(() => {
     if (!videoRef.current || !backgroundVideoRef.current) {
@@ -39,22 +41,34 @@ export function VideoPlayer({ video, isActive, onEnd }: VideoPlayerProps) {
       videoId: video.videoId,
       isActive,
       isPlaying,
+      isTabFocused,
+      shouldPlay: isActive && isPlaying && isTabFocused,
       videoUrl: video.videoUrl
     });
     
-    if (isActive && isPlaying) {
-      console.log('Attempting to play video:', video.videoId);
-      videoRef.current.playAsync().catch(error => {
-        console.error('Error playing video:', error);
-        setVideoError(error.message);
-      });
-      backgroundVideoRef.current.playAsync().catch(console.error);
-    } else {
-      console.log('Pausing video:', video.videoId);
-      videoRef.current.pauseAsync().catch(console.error);
-      backgroundVideoRef.current.pauseAsync().catch(console.error);
-    }
-  }, [isActive, isPlaying, video.videoUrl]);
+    const playVideo = async () => {
+      if (isActive && isPlaying && isTabFocused) {
+        console.log('Attempting to play video:', video.videoId);
+        try {
+          await videoRef.current?.playAsync();
+          await backgroundVideoRef.current?.playAsync();
+        } catch (error) {
+          console.error('Error playing video:', error);
+          setVideoError(error instanceof Error ? error.message : String(error));
+        }
+      } else {
+        console.log('Pausing video:', video.videoId);
+        try {
+          await videoRef.current?.pauseAsync();
+          await backgroundVideoRef.current?.pauseAsync();
+        } catch (error) {
+          console.error('Error pausing video:', error);
+        }
+      }
+    };
+
+    playVideo();
+  }, [isActive, isPlaying, isTabFocused, video.videoUrl]);
 
   const handleBackgroundVideoUpdate = (status: AVPlaybackStatus) => {
     if (!status.isLoaded) return;
@@ -125,7 +139,7 @@ export function VideoPlayer({ video, isActive, onEnd }: VideoPlayerProps) {
             source={{ uri: video.videoUrl }}
             style={styles.video}
             resizeMode={ResizeMode.CONTAIN}
-            shouldPlay={isActive && isPlaying}
+            shouldPlay={isActive && isPlaying && isTabFocused}
             isLooping={false}
             onPlaybackStatusUpdate={handlePlaybackStatusUpdate}
             onError={(error: Error | string) => {

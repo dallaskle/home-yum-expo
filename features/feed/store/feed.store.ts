@@ -9,9 +9,11 @@ interface FeedState {
   isLoading: boolean;
   error: string | null;
   hasMore: boolean;
+  isTabFocused: boolean;
   loadFeed: (reset?: boolean) => Promise<void>;
   setCurrentVideoIndex: (index: number) => void;
   addVideoToFeed: (videoId: string) => Promise<void>;
+  setTabFocused: (focused: boolean) => void;
 }
 
 export const useFeedStore = create<FeedState>()((set, get) => ({
@@ -20,6 +22,7 @@ export const useFeedStore = create<FeedState>()((set, get) => ({
   isLoading: false,
   error: null,
   hasMore: true,
+  isTabFocused: true,
 
   loadFeed: async (reset = false) => {
     try {
@@ -89,5 +92,9 @@ export const useFeedStore = create<FeedState>()((set, get) => ({
     } catch (error) {
       console.error('Failed to add video to feed:', error);
     }
+  },
+
+  setTabFocused: (focused: boolean) => {
+    set({ isTabFocused: focused });
   },
 })); 
