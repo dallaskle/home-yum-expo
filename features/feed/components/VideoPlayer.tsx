@@ -35,7 +35,6 @@ export function VideoPlayer({ video, isActive, onEnd }: VideoPlayerProps) {
 
   useEffect(() => {
     if (!videoRef.current || !backgroundVideoRef.current) {
-      console.log('Video refs not initialized for:', video.videoId);
       return;
     }
 
@@ -97,10 +96,6 @@ export function VideoPlayer({ video, isActive, onEnd }: VideoPlayerProps) {
 
   const handlePlaybackStatusUpdate = (status: AVPlaybackStatus) => {
     if (!status.isLoaded) {
-      console.log('Video not loaded:', {
-        videoId: video.videoId,
-        status: status
-      });
       if (status.error) {
         console.error('Video loading error:', status.error);
         setVideoError(status.error);

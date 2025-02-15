@@ -30,7 +30,6 @@ export function VideoFeed() {
   }, []);
 
   useEffect(() => {
-    console.log('Tab focus changed:', isFocused);
     setTabFocused(isFocused);
   }, [isFocused]);
 

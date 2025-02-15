@@ -70,45 +70,45 @@ export function CreateManualRecipeForm({ onSuccess }: CreateManualRecipeFormProp
           style={styles.previewImage}
         />
         
-        <Text style={[styles.title, { color: Colors[colorScheme ?? 'light'].text }]}>
+        <Text style={[styles.title]}>
           {recipeData.recipe.title}
         </Text>
         
-        <Text style={[styles.description, { color: Colors[colorScheme ?? 'light'].text }]}>
+        <Text style={[styles.description]}>
           {recipeData.recipe.description}
         </Text>
         
         <View style={styles.timingContainer}>
-          <Text style={[styles.timing, { color: Colors[colorScheme ?? 'light'].text }]}>
+          <Text style={[styles.timing]}>
             Prep: {recipeData.recipe.prepTime} mins
           </Text>
-          <Text style={[styles.timing, { color: Colors[colorScheme ?? 'light'].text }]}>
+          <Text style={[styles.timing]}>
             Cook: {recipeData.recipe.cookTime} mins
           </Text>
-          <Text style={[styles.timing, { color: Colors[colorScheme ?? 'light'].text }]}>
+          <Text style={[styles.timing]}>
             Serves: {recipeData.recipe.servings}
           </Text>
         </View>
 
-        <Text style={[styles.sectionTitle, { color: Colors[colorScheme ?? 'light'].text }]}>
+        <Text style={[styles.sectionTitle]}>
           Ingredients
         </Text>
         {recipeData.recipe.ingredients.map((ingredient, index) => (
           <Text 
             key={index}
-            style={[styles.ingredient, { color: Colors[colorScheme ?? 'light'].text }]}
+            style={[styles.ingredient]}
           >
             • {ingredient.amount} {ingredient.amountDescription} {ingredient.name}
           </Text>
         ))}
 
-        <Text style={[styles.sectionTitle, { color: Colors[colorScheme ?? 'light'].text }]}>
+        <Text style={[styles.sectionTitle]}>
           Instructions
         </Text>
         {recipeData.recipe.instructions.map((instruction) => (
           <Text 
             key={instruction.step}
-            style={[styles.instruction, { color: Colors[colorScheme ?? 'light'].text }]}
+            style={[styles.instruction]}
           >
             {instruction.step}. {instruction.text}
           </Text>
@@ -116,13 +116,13 @@ export function CreateManualRecipeForm({ onSuccess }: CreateManualRecipeFormProp
 
         {recipeData.recipe.tips.length > 0 && (
           <>
-            <Text style={[styles.sectionTitle, { color: Colors[colorScheme ?? 'light'].text }]}>
+            <Text style={[styles.sectionTitle]}>
               Tips
             </Text>
             {recipeData.recipe.tips.map((tip, index) => (
               <Text 
                 key={index}
-                style={[styles.tip, { color: Colors[colorScheme ?? 'light'].text }]}
+                style={[styles.tip]}
               >
                 • {tip}
               </Text>
@@ -132,7 +132,7 @@ export function CreateManualRecipeForm({ onSuccess }: CreateManualRecipeFormProp
 
         <View style={styles.confirmButtonContainer}>
           {error && (
-            <Text style={[styles.errorText, { color: Colors[colorScheme ?? 'light'].error }]}>
+            <Text style={[styles.errorText]}>
               {error}
             </Text>
           )}
@@ -168,12 +168,12 @@ export function CreateManualRecipeForm({ onSuccess }: CreateManualRecipeFormProp
         style={[
           styles.input,
           { 
-            color: Colors[colorScheme ?? 'light'].text,
-            borderColor: Colors[colorScheme ?? 'light'].border
+            color: '#000000',
+            borderColor: '#000000'
           }
         ]}
         placeholder="Briefly describe the meal here..."
-        placeholderTextColor={Colors[colorScheme ?? 'light'].text}
+        placeholderTextColor={'#000000'}
         value={prompt}
         onChangeText={setPrompt}
         multiline
@@ -183,14 +183,16 @@ export function CreateManualRecipeForm({ onSuccess }: CreateManualRecipeFormProp
         style={[
           styles.submitButton,
           {
-            backgroundColor: prompt.trim() ? Colors[colorScheme ?? 'light'].accent : Colors[colorScheme ?? 'light'].border,
+            backgroundColor: prompt.trim() 
+              ? Colors[colorScheme ?? 'light'].accent
+              : Colors[colorScheme ?? 'light'].border,
             opacity: prompt.trim() ? 1 : 0.5
           }
         ]}
         onPress={handleSubmit}
         disabled={!prompt.trim()}
       >
-        <Text style={styles.submitButtonText}>Generate Recipe</Text>
+        <Text style={[styles.submitButtonText, { color: '#000000' }]}>Generate Recipe</Text>
       </Pressable>
     </View>
   );
@@ -208,17 +210,19 @@ const styles = StyleSheet.create({
     fontSize: 16,
     minHeight: 80,
     textAlignVertical: 'top',
+    color: '#000000',
   },
   submitButton: {
+    width: '100%',
+    height: 50,
     borderRadius: 8,
-    padding: 16,
     alignItems: 'center',
     justifyContent: 'center',
+    marginTop: 10,
   },
   submitButtonText: {
-    color: 'white',
     fontSize: 16,
-    fontWeight: '600',
+    fontWeight: 'bold',
   },
   loadingContainer: {
     flex: 1,
@@ -229,6 +233,7 @@ const styles = StyleSheet.create({
   loadingText: {
     fontSize: 18,
     textAlign: 'center',
+    color: '#000000',
   },
   previewContainer: {
     flex: 1,
@@ -243,10 +248,12 @@ const styles = StyleSheet.create({
     fontSize: 24,
     fontWeight: 'bold',
     marginBottom: 8,
+    color: '#000000',
   },
   description: {
     fontSize: 16,
     marginBottom: 16,
+    color: '#000000',
   },
   timingContainer: {
     flexDirection: 'row',
@@ -255,25 +262,30 @@ const styles = StyleSheet.create({
   },
   timing: {
     fontSize: 14,
+    color: '#000000',
   },
   sectionTitle: {
     fontSize: 20,
     fontWeight: 'bold',
     marginTop: 16,
     marginBottom: 8,
+    color: '#000000',
   },
   ingredient: {
     fontSize: 16,
     marginBottom: 4,
+    color: '#000000',
   },
   instruction: {
     fontSize: 16,
     marginBottom: 12,
+    color: '#000000',
   },
   tip: {
     fontSize: 16,
     marginBottom: 4,
     fontStyle: 'italic',
+    color: '#000000',
   },
   confirmButtonContainer: {
     padding: 16,
@@ -286,7 +298,7 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   },
   confirmButtonText: {
-    color: 'white',
+    color: '#000000',
     fontSize: 16,
     fontWeight: '600',
   },

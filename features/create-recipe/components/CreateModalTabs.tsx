@@ -25,7 +25,7 @@ export function CreateModalTabs({ activeTab, onTabChange }: CreateModalTabsProps
           style={[
             styles.tabText,
             activeTab === 'link' && styles.activeTabText,
-            { color: Colors[colorScheme ?? 'light'].text }
+            { color: activeTab === 'link' ? Colors[colorScheme ?? 'light'].accent : 'black' }
           ]}
         >
           With a Link
@@ -43,7 +43,7 @@ export function CreateModalTabs({ activeTab, onTabChange }: CreateModalTabsProps
           style={[
             styles.tabText,
             activeTab === 'manual' && styles.activeTabText,
-            { color: Colors[colorScheme ?? 'light'].text }
+            { color: activeTab === 'manual' ? Colors[colorScheme ?? 'light'].accent : 'black' }
           ]}
         >
           Manually

@@ -102,7 +102,7 @@ export function CreateModal({ visible, onClose, slideAnim }: CreateModalProps) {
           keyboardShouldPersistTaps="handled"
         >
           <View style={styles.headerContainer}>
-            <Text style={[styles.title, { color: Colors[colorScheme ?? 'light'].text }]}>
+            <Text style={[styles.title]}>
               Add a New Recipe
             </Text>
               <Pressable 
@@ -180,6 +180,7 @@ const styles = StyleSheet.create({
     fontWeight: 'bold',
     textAlign: 'center',
     flex: 1,
+    color: "black"
   },
   resetButton: {
     position: 'absolute',

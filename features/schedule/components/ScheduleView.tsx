@@ -66,7 +66,6 @@ export function ScheduleView() {
 
     const grouped: { [key: string]: typeof meals } = {};
     sortedMeals.forEach(meal => {
-      console.log('meal', meal.video?.mealName)
       const label = getDateLabel(meal.mealDate);
       if (!grouped[label]) {
         grouped[label] = [];

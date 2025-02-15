@@ -21,14 +21,14 @@ export default {
     error: '#f44336'
   },
   dark: {
-    text: '#fff',
-    background: '#333333',
-    tint: tintColorDark,
+    text: '#000',
+    background: '#fff',
+    tint: tintColorLight,
     tabIconDefault: '#ccc',
-    tabIconSelected: tintColorDark,
+    tabIconSelected: tintColorLight,
     accent: '#FF6600',
-    secondary: '#999999',
-    border: '#666666',
+    secondary: '#666666',
+    border: '#e0e0e0',
     success: '#4CAF50',
     error: '#f44336'
   },

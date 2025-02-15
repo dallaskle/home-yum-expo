@@ -65,21 +65,21 @@ export function CreateRecipeForm({ onSuccess }: CreateRecipeFormProps) {
 
   return (
     <View style={styles.container}>
-      <Text style={[styles.description, { color: Colors[colorScheme ?? 'light'].text }]}>
+      <Text style={[styles.description]}>
         When you add a recipe, HomeYum will:
       </Text>
       
       <View style={styles.bulletPoints}>
-        <Text style={[styles.bulletPoint, { color: Colors[colorScheme ?? 'light'].text }]}>
+        <Text style={[styles.bulletPoint]}>
           • Save the video to your recipe book
         </Text>
-        <Text style={[styles.bulletPoint, { color: Colors[colorScheme ?? 'light'].text }]}>
+        <Text style={[styles.bulletPoint]}>
           • Extract the ingredients list
         </Text>
-        <Text style={[styles.bulletPoint, { color: Colors[colorScheme ?? 'light'].text }]}>
+        <Text style={[styles.bulletPoint]}>
           • Generate step-by-step instructions
         </Text>
-        <Text style={[styles.bulletPoint, { color: Colors[colorScheme ?? 'light'].text }]}>
+        <Text style={[styles.bulletPoint]}>
           • Calculate nutrition information
         </Text>
       </View>
@@ -88,13 +88,13 @@ export function CreateRecipeForm({ onSuccess }: CreateRecipeFormProps) {
         style={[
           styles.input,
           {
-            backgroundColor: Colors[colorScheme ?? 'light'].background,
-            borderColor: Colors[colorScheme ?? 'light'].border,
-            color: Colors[colorScheme ?? 'light'].text
+            backgroundColor: '#FFFFFF',
+            borderColor: '#000000',
+            color: '#000000'
           }
         ]}
         placeholder="Enter TikTok, Instagram, or YouTube URL"
-        placeholderTextColor={Colors[colorScheme ?? 'light'].tabIconDefault}
+        placeholderTextColor={'#000000'}
         value={videoUrl}
         onChangeText={setVideoUrl}
         autoCapitalize="none"
@@ -103,7 +103,7 @@ export function CreateRecipeForm({ onSuccess }: CreateRecipeFormProps) {
       />
 
       {error && (
-        <Text style={[styles.errorText, { color: Colors[colorScheme ?? 'light'].error }]}>
+        <Text style={[styles.errorText]}>
           {error}
         </Text>
       )}
@@ -133,6 +133,7 @@ const styles = StyleSheet.create({
   container: {
     width: '100%',
     marginBottom: 20,
+    color: '#000000'
   },
   input: {
     width: '100%',
@@ -141,6 +142,7 @@ const styles = StyleSheet.create({
     borderRadius: 8,
     paddingHorizontal: 15,
     marginBottom: 15,
+    color: '#000000',
   },
   button: {
     width: '100%',
@@ -154,7 +156,7 @@ const styles = StyleSheet.create({
     opacity: 0.7,
   },
   buttonText: {
-    color: 'white',
+    color: '#000000',
     fontSize: 16,
     fontWeight: 'bold',
   },
@@ -165,6 +167,7 @@ const styles = StyleSheet.create({
   description: {
     fontSize: 16,
     marginBottom: 12,
+    color: '#000000',
   },
   bulletPoints: {
     marginBottom: 24,
@@ -174,5 +177,6 @@ const styles = StyleSheet.create({
     fontSize: 15,
     lineHeight: 24,
     marginBottom: 4,
+    color: '#000000',
   },
 }); 
