@@ -6,7 +6,6 @@ import { useColorScheme } from '@/components/useColorScheme';
 import Animated, { FadeIn, FadeOut } from 'react-native-reanimated';
 import { ProgressTracker } from '@/components/ProgressTracker';
 import { useFeedStore } from '@/features/feed/store/feed.store';
-import { router } from 'expo-router';
 import { CachedImage } from '@/components/CachedImage';
 
 interface CreateManualRecipeFormProps {
@@ -41,7 +40,6 @@ export function CreateManualRecipeForm({ onSuccess }: CreateManualRecipeFormProp
       if (onSuccess) {
         setTimeout(onSuccess, 1500);
       }
-      router.replace('/(tabs)/index');
     }
   };
 

@@ -90,6 +90,7 @@ export const getRecipeLog = async (logId: string): Promise<RecipeLogResponse> =>
       console.error('❌ Authentication error: No ID token available');
       throw new Error('Not authenticated');
     }
+    console.log('🔵 Fetching recipe log status for ID:', logId);
 
     const response = await fetch(`${API_URL}/api/recipe-log/${logId}`, {
       headers: {

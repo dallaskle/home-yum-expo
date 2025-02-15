@@ -4,6 +4,7 @@ import Colors from '@/constants/Colors';
 import { useColorScheme } from './useColorScheme';
 import { ProcessingStep } from '@/features/create-recipe/api/create-recipe.api';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
+import { useCreateRecipeStore } from '@/features/create-recipe/store/create-recipe.store';
 
 const STEP_LABELS = {
   metadata_extraction: 'Pulling Video Data',
@@ -24,6 +25,12 @@ export function ProgressTracker({ steps }: ProgressTrackerProps) {
   const spinAnim = useRef(new Animated.Value(0)).current;
   const textAnims = useRef(Object.keys(STEP_LABELS).map(() => new Animated.Value(1))).current;
   const currentStepIndex = useRef(0);
+  const pollInterval = useRef<NodeJS.Timeout>();
+  const { isProcessing, pollRecipeStatus } = useCreateRecipeStore();
+
+  useEffect(() => {
+    console.log('pollRecipeStatus', pollRecipeStatus);
+  }, [pollRecipeStatus]);
 
   useEffect(() => {
     // Spin animation for icons
@@ -35,6 +42,14 @@ export function ProgressTracker({ steps }: ProgressTrackerProps) {
       })
     );
     spin.start();
+
+    // Set up polling if processing is active
+    if (isProcessing) {
+      pollInterval.current = setInterval(() => {
+        console.log('Polling recipe status');
+        pollRecipeStatus();
+      }, 5000); // Poll every 5 seconds
+    }
 
     // Text animation sequence
     const animateNextStep = () => {
@@ -65,8 +80,12 @@ export function ProgressTracker({ steps }: ProgressTrackerProps) {
     return () => {
       spin.stop();
       textAnims.forEach(anim => anim.stopAnimation());
+      if (pollInterval.current) {
+        console.log('Clearing interval');
+        clearInterval(pollInterval.current);
+      }
     };
-  }, []);
+  }, [isProcessing]);
 
   const spin = spinAnim.interpolate({
     inputRange: [0, 1],
