@@ -1,5 +1,5 @@
 import { create } from 'zustand';
-import { createRecipeLog, getRecipeLog, ProcessingStep } from '../api/create-recipe.api';
+import { createRecipeLog, getRecipeLog, ProcessingStep, getLatestRecipeLog } from '../api/create-recipe.api';
 import { useFeedStore } from '@/features/feed/store/feed.store';
 import Toast from 'react-native-toast-message';
 import { router } from 'expo-router';
@@ -126,15 +126,13 @@ export const useCreateRecipeStore = create<CreateRecipeStore>((set, get) => ({
   },
 
   pollRecipeStatus: () => {
-    const { currentLogId, isProcessing } = get();
+    const { isProcessing } = get();
     
-    if (!currentLogId || !isProcessing) {
+    if (!isProcessing) {
       return Promise.resolve();
     }
 
-    console.log('get status currentLogId', currentLogId);
-
-    return getRecipeLog(currentLogId)
+    return getLatestRecipeLog()
       .then(response => {
         console.log('response', response);
         
@@ -145,13 +143,16 @@ export const useCreateRecipeStore = create<CreateRecipeStore>((set, get) => ({
 
         if (response.status === 'completed' || response.status === 'failed') {
           set({ 
-            isProcessing: false,
-            currentLogId: null
+            isProcessing: false
           });
         }
       })
       .catch(error => {
         console.error('Error polling recipe status:', error);
+        // On 404, stop polling since there's no log to check
+        if (error.message.includes('404')) {
+          set({ isProcessing: false });
+        }
       });
   },
 })); 

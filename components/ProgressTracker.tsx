@@ -29,10 +29,6 @@ export function ProgressTracker({ steps }: ProgressTrackerProps) {
   const { isProcessing, pollRecipeStatus } = useCreateRecipeStore();
 
   useEffect(() => {
-    console.log('pollRecipeStatus', pollRecipeStatus);
-  }, [pollRecipeStatus]);
-
-  useEffect(() => {
     // Spin animation for icons
     const spin = Animated.loop(
       Animated.timing(spinAnim, {

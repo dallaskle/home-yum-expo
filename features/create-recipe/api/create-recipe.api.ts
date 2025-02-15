@@ -143,3 +143,33 @@ export const pollRecipeStatus = async (logId: string): Promise<RecipeLogResponse
     throw error;
   }
 };
+
+export const getLatestRecipeLog = async (): Promise<RecipeLogResponse> => {
+  console.log('🔵 Fetching latest recipe log');
+  
+  try {
+    const token = await getIdToken(auth.currentUser!);
+    if (!token) {
+      console.error('❌ Authentication error: No ID token available');
+      throw new Error('Not authenticated');
+    }
+
+    const response = await fetch(`${API_URL}/api/recipe-log/latest`, {
+      headers: {
+        'Authorization': `Bearer ${token}`,
+      },
+    });
+
+    if (!response.ok) {
+      console.error('❌ Failed to get latest recipe log:', response.status, response.statusText);
+      throw new Error('Failed to get latest recipe log');
+    }
+
+    const data = await response.json();
+    console.log('✅ Latest recipe log status:', data.status);
+    return data;
+  } catch (error) {
+    console.error('❌ Error getting latest recipe log:', error);
+    throw error;
+  }
+};
